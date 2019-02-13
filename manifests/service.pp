@@ -27,7 +27,7 @@ define icinga2::service (
      }
 
      $_filter_argumments = $_argumments['attrs'].filter |$k, $v| { $v != undef }
-     $arguments = { "hostname" => $fatcs['fqdn'], "attrs" => $_filter_argumments, "templates" => $templates,
+     $arguments = { "hostname" => $facts['fqdn'], "attrs" => $_filter_argumments, "templates" => $templates,
                     "notification" => { "user_groups" => $notification_user_groups, "users" => $notification_users },
                     "notification_templates" => $notification_templates
                   }
