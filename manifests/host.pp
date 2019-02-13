@@ -1,7 +1,7 @@
 define icinga2::host (
    Optional[String]  $hostgroup            = undef,
    Optional[Array]   $templates            = [], 
-   String            $address              = "127.0.0.1",
+   String            $address              = undef,
    Optional[Hash]    $vars                 = undef,
    Optional[String]  $check_command        = "hostalive",
    Optional[Integer] $check_interval       = undef,
