@@ -1,16 +1,16 @@
 {
-  "name": "icinga2-icinga2",
-  "version": "0.0.9",
+  "name": "icinga2",
+  "version": "0.0.1",
   "author": "ceritsc",
   "summary": "icinga2 module",
   "license": "MIT",
-  "source": "https://github.com/CERIT-SC",
-  "project_page": "https://github.com/CERIT-SC",
-  "issues_url": "https://github.com/CERIT-SC/issues",
+  "source": "https://github.com/CERIT-SC/puppet-icinga2.git",
+  "project_page": "https://github.com/CERIT-SC/puppet-icinga2",
+  "issues_url": "https://github.com/CERIT-SC/puppet-icinga2/issues",
   "dependencies": [
     {
       "name": "puppetlabs-stdlib",
-      "version_requirement": ">= 1.0.0"
+      "version_requirement": ">= 4.0.0"
     }
   ],
   "data_provider": null
