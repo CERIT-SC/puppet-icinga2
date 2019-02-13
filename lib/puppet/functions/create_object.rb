@@ -5,7 +5,9 @@ Puppet::Functions.create_function(:'create_object') do
   def create_object(nameOfObject, typeOfObject, arguments)
      if typeOfObject == "host"
         hostgroup = arguments["hostgroup"]
-        check_hostgroup(hostgroup)
+        if hostgroup != nil
+           check_hostgroup(hostgroup)
+        end
         check_host(nameOfObject, arguments)
      elsif typeOfObject == "service"
         notify_arguments = {"attrs" => arguments['notification'], "templates" => arguments['notification_templates']}
