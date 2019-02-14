@@ -1,8 +1,15 @@
 require 'rest-client'
 require 'json'
 
-#TYPY a vsetky vetvy if , kontrola nil -> zmenit na hostgroup
-Puppet::Functions.create_function(:'create_object') do
+
+Puppet::Functions.create_function(:'icinga2::create_object') do
+
+  dispatch :create_object do
+     param 'String', :nameOfObject
+     param 'String', :typeOfObject
+     param 'Hash',   :arguments
+  end
+
   def create_object(nameOfObject, typeOfObject, arguments)
      if typeOfObject == "host"
         arguments['attrs']['groups'].each do |hostgroup|
@@ -21,12 +28,17 @@ Puppet::Functions.create_function(:'create_object') do
      end
   end
 
+  dispatch :check_host do
+     param 'String', :hostname
+     param 'Hash',   :arguments
+  end
+
   def check_host(hostname, arguments)
      arguments.delete("hostgroup")
      suffix = "hosts/#{hostname}"
      result = get("hosts", hostname)
 
-     if result.nil?
+     if result.empty?
          update(suffix, arguments, "put")
      elsif result[0]['attrs']['groups'].sort != arguments['attrs']['groups'].sort
          delete(suffix)
@@ -37,14 +49,23 @@ Puppet::Functions.create_function(:'create_object') do
   end
 
 
+  dispatch :check_hostgroup do
+     param 'String', :hostgroup
+  end
+
   def check_hostgroup(hostgroup) 
      suffix = "hostgroups/#{hostgroup}"
      result = get("hostgroups", hostgroup)
 
-     if result.nil?
+     if result.empty?
         attributes = {"attr" => {"display_name" => hostgroup}}
         update(suffix, attributes, "put")
      end
+  end
+
+  dispatch :check_service do
+     param 'String', :service
+     param 'Hash',   :arguments
   end
 
   def check_service(service, arguments)
@@ -53,23 +74,34 @@ Puppet::Functions.create_function(:'create_object') do
      suffix = "services/#{hostname}!#{service}"
      result = get("services", "#{hostname}!#{service}")
 
-     if result.nil?
+     if result.empty?
          update(suffix, arguments, "put")
      else
          update(suffix, arguments, "post")    
      end 
   end
 
+
+  dispatch :check_notify do
+     param 'String',  :hostname
+     param 'String',  :servicename
+     pram  'Hash',    :arguments
+  end
+
   def check_notify(hostname, servicename, arguments)
      suffix = "notifications/#{hostname}!#{servicename}!#{servicename}-notification"
      result = get("notifications", "#{hostname}!#{servicename}!#{servicename}-notification")
      
-     if result.nil?
+     if result.empty?
          update(suffix, arguments, "put")
      else
          update(suffix, arguments, "post")    
      end 
 
+  end
+
+  dispatch :delete do
+     param 'String', :suffix
   end
 
   def delete(suffix)
@@ -77,11 +109,20 @@ Puppet::Functions.create_function(:'create_object') do
     RestClient::Request.execute(:url => url, :method => :delete, :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
   end
 
+  dispatch :update do
+     param 'String', :suffix
+     param 'Hash',   :arguments
+     param 'String', :method
+  end
+
   def update(suffix, arguments, method)
      url = format( 'https://apicerit:7OjByrydjus~@147.251.7.9:5665/v1/objects/%s', suffix)
-     #verify_ssl 
-     r = RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json ,:headers => {"Accept" => "application/json"})
-     # TODO CHECK RETURN CODE
+     RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json, :headers => {"Accept" => "application/json"})
+  end
+
+  dispatch :get do
+     param 'String', :suffix
+     param 'String', :name
   end
 
   def get(suffix, name) 
