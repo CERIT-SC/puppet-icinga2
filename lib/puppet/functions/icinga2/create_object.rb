@@ -85,7 +85,7 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   dispatch :check_notify do
      param 'String',  :hostname
      param 'String',  :servicename
-     pram  'Hash',    :arguments
+     param 'Hash',    :arguments
   end
 
   def check_notify(hostname, servicename, arguments)
