@@ -26,6 +26,6 @@ define icinga2::service (
                     "notification_templates" => $notification_templates
                   }
 
-     create_object($title, "service", $arguments)
+     icinga2::create_object($title, "service", $arguments)
 }
 
