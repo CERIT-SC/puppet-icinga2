@@ -1,6 +1,6 @@
 class icinga2 (
    Array  $nrpe_commands = [],
-   String $host_ip_address = undef,
+   String $host_ip_address = "127.0.0.1,
 ) {
   include icinga2::install
 
