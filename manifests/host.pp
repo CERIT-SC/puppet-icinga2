@@ -28,5 +28,5 @@ define icinga2::host (
      $_filtered_argumments = $_argumments['attrs'].filter |$k, $v| { $v != undef }
      $arguments = { "attrs" => $_filtered_argumments, "templates" => $templates }
 
-     create_object($title, "host", $arguments)
+     icinga2::create_object($title, "host", $arguments)
 }
