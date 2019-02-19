@@ -1,6 +1,5 @@
 class icinga2 (
-   Array  $nrpe_commands = [],
-   String $host_ip_address = "127.0.0.1",
+   Array $nrpe_commands = [],
 ) {
   include icinga2::install
 
@@ -18,9 +17,7 @@ class icinga2 (
       plugin  => $item['plugin'],
     }
 
-    $_name_of_check = $item["name"]
-
-    icinga2::service { "${_name_of_check}":
+    icinga2::service { $item['name']:
       check_command => "nrpe",
       vars          => { "nrpe_port" => 5669, "nrpe_command" => $item['name'] },
     }
