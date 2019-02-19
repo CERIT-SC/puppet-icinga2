@@ -1,11 +1,13 @@
 class icinga2 (
    Array $nrpe_commands = [],
+   Array $groups        = [],
 ) {
   include icinga2::install
 
   icinga2::host{ $facts['fqdn']:
     check_command        => "hostalive",
     address              => $facts['ipaddress'],
+    groups               => $groups,
     templates            => ["generic-host"],
     enable_notifications => true,
   }
