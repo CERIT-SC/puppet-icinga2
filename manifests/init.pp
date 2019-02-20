@@ -1,6 +1,6 @@
 class icinga2 (
-   Array $nrpe_commands = [],
-   Array $groups        = [],
+   Hash $nrpe_commands = [],
+   Array $groups       = [],
 ) {
   include icinga2::install
 
@@ -13,15 +13,15 @@ class icinga2 (
   }
 
 
-  $nrpe_commands.each |$item| {
-    nrpe::plugin { $item['name']:
-      args    => $item['args'],
-      plugin  => $item['plugin'],
+  $nrpe_commands.each |$name, $attr| {
+    nrpe::plugin { $name:
+      args    => $attr['args'],
+      plugin  => $attr['plugin'],
     }
 
-    icinga2::service { $item['name']:
+    icinga2::service { $name:
       check_command => "nrpe",
-      vars          => { "nrpe_port" => 5669, "nrpe_command" => $item['name'] },
+      vars          => { "nrpe_port" => 5669, "nrpe_command" => $name },
     }
   }
 }
