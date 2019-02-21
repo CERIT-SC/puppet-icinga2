@@ -1,6 +1,5 @@
 class icinga2 (
-   Hash $nrpe_commands = [],
-   Array $groups       = [],
+   Array $groups  = [],
 ) {
   include icinga2::install
 
@@ -12,6 +11,8 @@ class icinga2 (
     enable_notifications => true,
   }
 
+
+  $nrpe_commands = lookup('icinga2::nrpe_commands', Hash, 'hash', {})
 
   $nrpe_commands.each |$name, $attr| {
     nrpe::plugin { $name:
