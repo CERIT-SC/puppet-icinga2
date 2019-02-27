@@ -9,8 +9,5 @@ class icinga2::install {
   }
 
   $_packages = lookup('icinga2::packages', Array[String], 'first', [])
-
-  $_packages.each |$name| {
-    package { $name: }
-  }
+  ensure_packages($_packages)
 }
