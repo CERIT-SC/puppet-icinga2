@@ -1,5 +1,8 @@
 define icinga2::service (
    String            $check_command,
+   String            $user,
+   String            $password,
+   String            $url,
    Optional[Array]   $templates                = [],
    Optional[Hash]    $vars                     = {},
    Optional[Integer] $check_interval           = 300,
@@ -10,6 +13,15 @@ define icinga2::service (
    Optional[Array]   $notification_users       = [],
    Optional[Array]   $notification_templates   = [],
 ) {
+     
+     $_last_char = inline_template('<%= @url[-1,1] %>')
+
+     if $_last_char == "/" {
+        $_new_url = regsubst($url, "^(.*):\/\/(.*)", "\1://${user}:${password}@\2v1/objects/")
+     } else {
+        $_new_url = regsubst($url, "^(.*):\/\/(.*)", "\1://${user}:${password}@\2/v1/objects/")
+     }
+
      $_argumments = { "attrs" => {
                        "vars"                 => $vars,
                        "check_command"        => $check_command,
@@ -26,6 +38,6 @@ define icinga2::service (
                     "notification_templates" => $notification_templates
                   }
 
-     icinga2::create_object($title, "service", $arguments)
+     icinga2::create_object($title, "service", $arguments, $_new_url)
 }
 

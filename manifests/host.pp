@@ -1,5 +1,8 @@
 define icinga2::host (
    String            $address,
+   String            $user,
+   String            $password,
+   String            $url,
    Optional[String]  $display_name         = "",
    Optional[Array]   $groups               = [],
    Optional[Array]   $templates            = [],
@@ -12,6 +15,14 @@ define icinga2::host (
    Optional[Boolean] $enable_event_handler = true,
    Optional[Boolean] $enable_notifications = false,
 ) {
+     $_last_char = inline_template('<%= @url[-1,1] %>')
+
+     if $_last_char == "/" {
+        $_new_url = regsubst($url, "^(.*):\/\/(.*)", "\1://${user}:${password}@\2v1/objects/")
+     } else {
+        $_new_url = regsubst($url, "^(.*):\/\/(.*)", "\1://${user}:${password}@\2/v1/objects/")
+     }
+
      $_argumments = { "attrs"                 => {
                        "address"              => $address,
                        "display_name"         => $display_name,
@@ -30,5 +41,5 @@ define icinga2::host (
      $_filtered_argumments = $_argumments['attrs'].filter |$k, $v| { $v != undef or $v != "" }
      $arguments = { "attrs" => $_filtered_argumments, "templates" => $templates }
 
-     icinga2::create_object($title, "host", $arguments)
+     icinga2::create_object($title, "host", $arguments, $_new_url)
 }
