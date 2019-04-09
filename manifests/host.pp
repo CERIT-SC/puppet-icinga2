@@ -1,7 +1,8 @@
 define icinga2::host (
-   Optional[Array]   $groups               = [],
-   Optional[Array]   $templates            = [], 
    String            $address,
+   Optional[String]  $display_name         = "",
+   Optional[Array]   $groups               = [],
+   Optional[Array]   $templates            = [],
    Optional[Hash]    $vars                 = {},
    Optional[String]  $check_command        = "hostalive",
    Optional[Integer] $check_interval       = 300,
@@ -13,6 +14,7 @@ define icinga2::host (
 ) {
      $_argumments = { "attrs"                 => {
                        "address"              => $address,
+                       "display_name"         => $display_name,
                        "vars"                 => $vars,
                        "check_command"        => $check_command,
                        "check_interval"       => $check_interval,
@@ -25,7 +27,7 @@ define icinga2::host (
                     },
      }
      
-     $_filtered_argumments = $_argumments['attrs'].filter |$k, $v| { $v != undef }
+     $_filtered_argumments = $_argumments['attrs'].filter |$k, $v| { $v != undef or $v != "" }
      $arguments = { "attrs" => $_filtered_argumments, "templates" => $templates }
 
      icinga2::create_object($title, "host", $arguments)
