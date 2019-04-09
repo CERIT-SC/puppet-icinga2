@@ -1,7 +1,7 @@
 define icinga2::service (
+   String            $check_command,
    Optional[Array]   $templates                = [],
    Optional[Hash]    $vars                     = {},
-   String            $check_command,
    Optional[Integer] $check_interval           = 300,
    Optional[Integer] $retry_interval           = 60,
    Optional[Integer] $check_timeout            = 30,
