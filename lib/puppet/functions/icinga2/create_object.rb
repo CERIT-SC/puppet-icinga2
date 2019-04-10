@@ -32,21 +32,21 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   dispatch :check_host do
      param 'String', :hostname
      param 'Hash',   :arguments
-     param 'String',  :url
+     param 'String', :url
   end
 
   def check_host(hostname, arguments, url)
      arguments.delete("hostgroup")
-     suffix = "hosts/#{hostname}"
-     result = get("hosts", hostname, url)
+     object_url = url + "hosts/#{hostname}"
+     result     = get(hostname, url + "hosts")
 
      if result.empty?
-         update(suffix, arguments, "put")
+         update(arguments, "put", object_url)
      elsif result[0]['attrs']['groups'].sort != arguments['attrs']['groups'].sort
-         delete(suffix, url)
-         update(suffix, arguments, "put", url)
+         update("delete", object_url + "?cascade=1")
+         update(arguments, "put", object_url)
      else
-         update(suffix, arguments, "post", url)
+         update(arguments, "post", object_url)
      end
   end
 
@@ -57,12 +57,12 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def check_hostgroup(hostgroup, url) 
-     suffix = "hostgroups/#{hostgroup}"
-     result = get("hostgroups", hostgroup, url)
+     object_url = url + "hostgroups/#{hostgroup}"
+     result     = get(hostgroup, url + "hostgroups")
 
      if result.empty?
         attributes = {"attr" => {"display_name" => hostgroup}}
-        update(suffix, attributes, "put", url)
+        update(attributes, "put", object_url)
      end
   end
 
@@ -75,13 +75,13 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   def check_service(service, arguments, url)
      hostname = arguments["hostname"]
      arguments.delete("hostname")
-     suffix = "services/#{hostname}!#{service}"
-     result = get("services", "#{hostname}!#{service}", url)
+     object_url =  url + "services/#{hostname}!#{service}"
+     result     = get("#{hostname}!#{service}", url + "services")
 
      if result.empty?
-         update(suffix, arguments, "put", url)
+         update(arguments, "put", object_url)
      else
-         update(suffix, arguments, "post", url)    
+         update(arguments, "post", object_url)    
      end 
   end
 
@@ -94,49 +94,44 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def check_notify(hostname, servicename, arguments, url)
-     suffix = "notifications/#{hostname}!#{servicename}!#{servicename}-notification"
-     result = get("notifications", "#{hostname}!#{servicename}!#{servicename}-notification", url)
+     object_url = url + "notifications/#{hostname}!#{servicename}!#{servicename}-notification"
+     result     = get("#{hostname}!#{servicename}!#{servicename}-notification", url + "notifications")
      
      if result.empty?
-         update(suffix, arguments, "put", url)
+         update(arguments, "put", object_url)
      else
-         update(suffix, arguments, "post", url)    
+         update(arguments, "post", object_url)    
      end 
 
   end
 
-  dispatch :delete do
-     param 'String', :suffix
-     param 'String', :url
-  end
-
-  def delete(suffix, url)
-    url += (suffix + "?cascade=1")      
-    RestClient::Request.execute(:url => url, :method => :delete, :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
-  end
-
   dispatch :update do
-     param 'String', :suffix
-     param 'Hash',   :arguments
      param 'String', :method
      param 'String', :url
   end
 
-  def update(suffix, arguments, method, url)
-     url += suffix
+  def update(method, url)
+     RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
+  end
+
+  dispatch :update do
+     param 'String', :method
+     param 'String', :url
+     param 'Hash',   :arguments
+  end
+
+  def update(arguments, method, url)
      RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json, :headers => {"Accept" => "application/json"})
   end
 
   dispatch :get do
-     param 'String', :suffix
      param 'String', :name
      param 'String', :url
   end
 
-  def get(suffix, name, url) 
-     url   += suffix
+  def get(name, url) 
      result = RestClient::Request.execute(:url => url, :method => :get, :timeout => 10, :verify_ssl => false) 
-     result = JSON.parse( result )     
+     result = JSON.parse(result)     
      return result['results'].select{|item| item['name'] == name}
   end
 end
