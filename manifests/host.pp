@@ -12,7 +12,7 @@ define icinga2::host (
    Optional[Boolean] $enable_event_handler = true,
    Optional[Boolean] $enable_notifications = false,
 ) {
-     require icinga::api
+     require icinga2::api
      
      $_new_url    = $::icinga2::api::new_url
      $_argumments = { "attrs"                 => {

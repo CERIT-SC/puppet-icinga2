@@ -10,7 +10,7 @@ define icinga2::service (
    Optional[Array]   $notification_users       = [],
    Optional[Array]   $notification_templates   = [],
 ) {
-     require icinga::api
+     require icinga2::api
 
      $_new_url    = $::icinga2::api::new_url
      $_argumments = { "attrs" => {
