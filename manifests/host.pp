@@ -1,6 +1,6 @@
 define icinga2::host (
    String            $address,
-   Optional[String]  $display_name         = "",
+   Optional[String]  $display_name         = $facts['fqdn'],
    Optional[Array]   $groups               = [],
    Optional[Array]   $templates            = [],
    Optional[Hash]    $vars                 = {},
