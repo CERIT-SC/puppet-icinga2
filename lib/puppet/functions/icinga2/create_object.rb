@@ -111,7 +111,12 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def update(method, url)
+    begin
      RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
+    rescue => error
+      puts error
+      raise
+    end
   end
 
   dispatch :update do
@@ -121,7 +126,12 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def update(arguments, method, url)
-     RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json, :headers => {"Accept" => "application/json"})
+    begin
+      RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json, :headers => {"Accept" => "application/json"})
+    rescue => error
+      puts error
+      raise
+    end
   end
 
   dispatch :get do
@@ -130,7 +140,12 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def get(name, url) 
-     result = RestClient::Request.execute(:url => url, :method => :get, :timeout => 10, :verify_ssl => false) 
+    begin
+     result = RestClient::Request.execute(:url => url, :method => :get, :timeout => 10, :verify_ssl => false)
+    rescue => error
+      puts error
+      raise
+    end
      result = JSON.parse(result)     
      return result['results'].select{|item| item['name'] == name}
   end
