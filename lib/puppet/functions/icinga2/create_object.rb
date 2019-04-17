@@ -128,7 +128,7 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
     begin
       RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json, :headers => {"Accept" => "application/json"})
     rescue => error
-      raise(error)
+      raise("URL: #{url}, METHOD: #{method}, ARGUMENTS: #{arguments}")
     end
   end
 
@@ -141,7 +141,7 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
     begin
      result = RestClient::Request.execute(:url => url, :method => :get, :timeout => 10, :verify_ssl => false)
     rescue => error
-      raise(error)
+      raise("URL: #{url}")
     end
      result = JSON.parse(result)     
      return result['results'].select{|item| item['name'] == name}
