@@ -4,7 +4,7 @@ class icinga2::install {
 
   class { 'nrpe':
     allowed_hosts           => $_allowed_hosts,
-    server_port             => 5669,
+    server_port             => 5666,
     nagios_plugins_package  => lookup('icinga2::nagios_plugins_package', Variant[Array[String],String], 'first', 'USE_DEFAULTS'), 
   }
 
