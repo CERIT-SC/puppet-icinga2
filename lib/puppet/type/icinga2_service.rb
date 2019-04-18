@@ -2,7 +2,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__),"..",".."))
 require 'puppet/resource_api'
 
 Puppet::ResourceApi.register_type(
-  name: 'service',
+  name: 'icinga2_service',
   docs: <<-EOS,
       This type provides Puppet with the capabilities to manage service in icinga2.
     EOS
