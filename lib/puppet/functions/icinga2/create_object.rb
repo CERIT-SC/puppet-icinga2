@@ -43,7 +43,7 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
      if result.empty?
          update(arguments, "put", object_url)
      elsif result[0]['attrs']['groups'].sort != arguments['attrs']['groups'].sort
-         update("delete", object_url + "?cascade=1")
+         delete(object_url + "?cascade=1")
          update(arguments, "put", object_url)
      else
          update(arguments, "post", object_url)
@@ -105,14 +105,13 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
 
   end
 
-  dispatch :update do
-     param 'String', :method
+  dispatch :delete do
      param 'String', :url
   end
 
-  def update(method, url)
+  def delete(url)
     begin
-     RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
+     RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
     rescue => error
       raise(error)
     end
