@@ -14,7 +14,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     hostInfo = getInformation(name, url + "hosts")
 
     if hostInfo.empty?
-      tmpHash = {:name => name, :ensure => "absent"})
+      tmpHash = {:name => name, :ensure => "absent"}
     else
       tmpHash[:ensure] = "present"
       tmpHash[:name]   = name
