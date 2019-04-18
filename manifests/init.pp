@@ -10,6 +10,7 @@ class icinga2 (
   }
 
   icinga2::host { $facts['fqdn']:
+    ensure               => "present",
     check_command        => "hostalive",
     address              => $facts['ipaddress'],
     groups               => $groups,
