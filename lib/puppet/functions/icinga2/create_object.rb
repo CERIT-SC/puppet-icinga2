@@ -16,9 +16,9 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
         arguments['attrs']['groups'].each do |hostgroup|
            check_hostgroup(hostgroup, url)
         end
-        check_host(nameOfObject, arguments, url)
+        check_host(nameOfObject, arguments.clone, url)
      elsif typeOfObject == "service"
-        check_service(nameOfObject, arguments, url)
+        check_service(nameOfObject, arguments.clone, url)
         if arguments['attrs']['enable_notifications']
            notify_arguments = {"attrs" => arguments['notification'], "templates" => arguments['notification_templates']}
            hostname         = arguments['hostname']
