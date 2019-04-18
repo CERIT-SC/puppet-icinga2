@@ -9,7 +9,7 @@ class icinga2 (
     url      => lookup('icinga2::url'),
   }
 
-  icinga2::host { $facts['fqdn']:
+  icinga2::host2 { $facts['fqdn']:
     ensure               => "present",
     check_command        => "hostalive",
     address              => $facts['ipaddress'],
