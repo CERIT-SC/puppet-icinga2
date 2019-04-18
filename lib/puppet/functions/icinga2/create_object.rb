@@ -16,9 +16,9 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
         arguments['attrs']['groups'].each do |hostgroup|
            check_hostgroup(hostgroup, url)
         end
-        check_host(nameOfObject, arguments, url)
+        check_host(nameOfObject, arguments.clone, url)
      elsif typeOfObject == "service"
-        check_service(nameOfObject, arguments, url)
+        check_service(nameOfObject, arguments.clone, url)
         if arguments['attrs']['enable_notifications']
            notify_arguments = {"attrs" => arguments['notification'], "templates" => arguments['notification_templates']}
            hostname         = arguments['hostname']
@@ -111,7 +111,11 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def update(method, url)
+    begin
      RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
+    rescue => error
+      raise(error)
+    end
   end
 
   dispatch :update do
@@ -121,7 +125,11 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def update(arguments, method, url)
-     RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json, :headers => {"Accept" => "application/json"})
+    begin
+      RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => arguments.to_json, :headers => {"Accept" => "application/json"})
+    rescue => error
+      raise("URL: #{url}, METHOD: #{method}, ARGUMENTS: #{arguments}")
+    end
   end
 
   dispatch :get do
@@ -130,7 +138,11 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
   end
 
   def get(name, url) 
-     result = RestClient::Request.execute(:url => url, :method => :get, :timeout => 10, :verify_ssl => false) 
+    begin
+     result = RestClient::Request.execute(:url => url, :method => :get, :timeout => 10, :verify_ssl => false)
+    rescue => error
+      raise("URL: #{url}")
+    end
      result = JSON.parse(result)     
      return result['results'].select{|item| item['name'] == name}
   end
