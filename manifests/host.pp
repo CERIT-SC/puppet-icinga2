@@ -1,4 +1,4 @@
-define icinga2::host (
+define icinga2::host2 (
    String            $address,
    String            $ensure,
    Optional[String]  $display_name         = $facts['fqdn'],
