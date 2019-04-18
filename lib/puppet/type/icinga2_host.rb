@@ -2,7 +2,7 @@ $LOAD_PATH.unshift(File.join(File.dirname(__FILE__),"..",".."))
 require 'puppet/resource_api'
 
 Puppet::ResourceApi.register_type(
-  name: 'host',
+  name: 'icinga2_host',
   docs: <<-EOS,
       This type provides Puppet with the capabilities to manage host in icinga2.
     EOS
