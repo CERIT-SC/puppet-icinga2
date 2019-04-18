@@ -29,7 +29,7 @@ class icinga2 (
 
     icinga2::service { $name:
       check_command => "nrpe",
-      vars          => { "nrpe_port" => 5669, "nrpe_command" => $name },
+      vars          => { "nrpe_port" => 5666, "nrpe_command" => $name },
     }
   }
 }
