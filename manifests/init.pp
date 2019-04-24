@@ -9,7 +9,7 @@ class icinga2 (
     url      => lookup('icinga2::url'),
   }
 
-  icinga2::host2 { $facts['fqdn']:
+  icinga2::icinga2_host { $facts['fqdn']:
     ensure               => "present",
     check_command        => "hostalive",
     address              => $facts['ipaddress'],
@@ -27,7 +27,7 @@ class icinga2 (
       plugin  => $attr['plugin'],
     }
 
-    icinga2::service { $name:
+    icinga2::icinga2_service { $name:
       check_command => "nrpe",
       vars          => { "nrpe_port" => 5666, "nrpe_command" => $name },
     }
