@@ -1,4 +1,4 @@
-define icinga2::service (
+define icinga2::icinga2_service (
    String            $check_command,
    Optional[Array]   $templates                = [],
    Optional[Hash]    $vars                     = {},
