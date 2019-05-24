@@ -100,7 +100,8 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
      if result.empty?
          update(arguments, "put", object_url)
      else
-         update(arguments, "post", object_url)    
+         delete(object_url)
+         update(arguments, "put", object_url)    
      end 
 
   end
