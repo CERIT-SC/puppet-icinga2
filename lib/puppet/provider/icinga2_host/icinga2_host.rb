@@ -20,11 +20,13 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       tmpHash[:name]   = name
       tmpHash[:url]    = url
       hostInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
-        next if SETTABLEATTRIBUTES.empty?  #TODO MOZNO BREAK NAMIESTO NEXT
+
+        next if SETTABLEATTRIBUTES.empty? # BREAK NAMIESTO NEXT???
+        
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
           if nameOfAttribute == "groups"
-            tmpHash[nameOfAttribute.to_sym] = valueOfAttribute.sort 
-          elsif nameOfAttribute == "templates"
+            tmpHash[nameOfAttribute.to_sym] = valueOfAttribute.sort  # TENTO IF KOLI ZOTREDENIU PRVKOV V POLI
+          elsif nameOfAttribute == "templates"  # UZIVATEL NEZADAVA TEMPLATE S TYM ISTYM MENOM AKO STROJ. ALE ICINGA HEJ
             currentTemplates = valueOfAttribute.select do |template|
                template != name
             end
@@ -90,7 +92,11 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     if isThereGroup.empty?
        objectUrl = url + "hostgroups/#{hostgroup}"
        attributes = {"attr" => {"display_name" => hostgroup}}
-       RestClient::Request.execute(:url => objectUrl, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
+       begin
+          RestClient::Request.execute(:url => objectUrl, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
+       rescue Errno::ECONNREFUSED => error
+          return
+       end
     end
   end
 
@@ -98,8 +104,8 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   def getInformation(name, url)
     begin
        result = RestClient::Request.execute(:url => url, :method => "get", :verify_ssl => false, :timeout => 10, :headres => {"Accept" => "application/json"})
-    rescue => error
-       raise("Something happend: #{error}")
+    rescue Errno::ECONNREFUSED => error
+       return []
     end
     result = JSON.parse(result)
     return result['results'].select{|item| item['name'] == name}
@@ -119,8 +125,8 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
        should.delete("templates")
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-    rescue => error
-       raise("Something happend: #{error}")
+    rescue Errno::ECONNREFUSED => error
+      return
     end
   end
   
@@ -143,8 +149,8 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
        should.delete("templates")
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-    rescue => error
-      raise("Something happend: #{error}")
+    rescue Errno::ECONNREFUSED => error
+      return
     end
   end
   
@@ -153,8 +159,8 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     url = url + "hosts/#{name}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
-    rescue => error
-       raise("Something happend: #{error}")
+    rescue Errno::ECONNREFUSED => error
+      return
     end
   end
 end
