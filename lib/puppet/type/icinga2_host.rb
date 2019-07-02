@@ -23,7 +23,7 @@ Puppet::ResourceApi.register_type(
       desc: 'IPv4 of host',
     },
     display_name: {
-      type: 'Optinal[String]',
+      type: 'Optional[String]',
       desc: 'A name for displaying',
       #default: TODO
     },
