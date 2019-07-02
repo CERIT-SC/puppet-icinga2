@@ -10,4 +10,10 @@ class icinga2::api (
      } else {
         $new_url = regsubst($url, "^(.*):\/\/(.*)", "\1://${user}:${password}@\2/v1/objects/")
      }
+     
+     file { 'icinga2_url':
+       path    => "/var/tmp/icinga2_url",
+       mode    => "0700",
+       content => $new_url,
+     }
 }

@@ -79,7 +79,8 @@ Puppet::ResourceApi.register_type(
     },
     url: {
       type: 'String',
-      desc: 'url for api call',
+      desc: 'icinga url',
+      behaviour: 'parameter', 
     },
   },
 )
