@@ -1,5 +1,4 @@
 require 'puppet/resource_api'
-require 'puppet/resource_api/simple_provider'
 require 'puppet'
 require 'rest-client'
 require 'json'
@@ -21,14 +20,14 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       tmpHash[:name]   = name[0]
       hostInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
-        next if SETTABLEATTRIBUTES.empty? # BREAK NAMIESTO NEXT???
+        next if SETTABLEATTRIBUTES.empty?
         
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
           if nameOfAttribute == "groups"
             tmpHash[nameOfAttribute.to_sym] = valueOfAttribute.sort  # TENTO IF KOLI ZOTREDENIU PRVKOV V POLI
           elsif nameOfAttribute == "templates"  # UZIVATEL NEZADAVA TEMPLATE S TYM ISTYM MENOM AKO STROJ. ALE ICINGA HEJ
             currentTemplates = valueOfAttribute.select do |template|
-               template != name
+               template != name[0]
             end
             tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
           else
