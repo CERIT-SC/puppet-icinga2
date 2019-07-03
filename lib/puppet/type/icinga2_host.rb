@@ -23,7 +23,7 @@ Puppet::ResourceApi.register_type(
       desc: 'IPv4 of host',
     },
     display_name: {
-      type: 'Optinal[String]',
+      type: 'Optional[String]',
       desc: 'A name for displaying',
       #default: TODO
     },
@@ -48,19 +48,19 @@ Puppet::ResourceApi.register_type(
       default: "hostalive",
     },
     check_interval: {
-      type: 'Integer',
+      type: 'Float',
       desc: 'check interval',
-      default: 300,
+      default: 300.0,
     },
     retry_interval: {
-      type: 'Integer',
+      type: 'Float',
       desc: 'retry interval',
-      default: 60,
+      default: 60.0,
     },
     check_timeout: {
-      type: 'Integer',
+      type: 'Float',
       desc: 'check timeout',
-      default: 30,
+      default: 30.0,
     },
     enable_active_checks: {
       type: 'Boolean',
@@ -76,11 +76,6 @@ Puppet::ResourceApi.register_type(
       type: 'Boolean',
       desc: 'enable notifications',
       default: false,
-    },
-    url: {
-      type: 'String',
-      desc: 'icinga url',
-      behaviour: 'parameter', 
     },
   },
 )

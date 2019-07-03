@@ -7,7 +7,7 @@ require 'json'
 class Puppet::Provider::Icinga2Host::Icinga2Host 
 
   SETTABLEATTRIBUTES ||= FileTest.exist?("/var/tmp/icinga2_host_resources") ? File.read("/var/tmp/icinga2_host_resources").split("\n").freeze : []
-  URL                ||= FileTest.exist?("/var/tmp/icinga2_url") ? File.read("/var/tmp/icinga2_url").split("\n").freeze : []
+  URL                ||= FileTest.exist?("/var/tmp/icinga2_url") ? File.read("/var/tmp/icinga2_url").freeze : ""
 
   def get(context, name )
     result   = []
@@ -18,7 +18,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       tmpHash = {:name => name, :ensure => "absent"}
     else
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name
+      tmpHash[:name]   = name[0]
       hostInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty? # BREAK NAMIESTO NEXT???
@@ -107,7 +107,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
        return []
     end
     result = JSON.parse(result)
-    return result['results'].select{|item| item['name'] == name}
+    return result['results'].select{ |item| item['name'] == name[0] }
   end
 
   
