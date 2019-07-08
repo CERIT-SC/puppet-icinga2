@@ -39,8 +39,9 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
               currentTemplates = valueOfAttribute.select do |template|
                    template != name[0]
               tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
+            else
+              tmpHash[nameOfAttribute.to_sym] = valueOfAttribute
             end
-            tmpHash[nameOfAttribute.to_sym] = valueOfAttribute
         end
       end
     end
