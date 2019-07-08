@@ -67,5 +67,9 @@ Puppet::ResourceApi.register_type(
       desc: 'templates for notification',
       default: [],
     },
+    display_name: {
+      type: 'String',
+      desc: 'display name of service',
+    },
   },
 )
