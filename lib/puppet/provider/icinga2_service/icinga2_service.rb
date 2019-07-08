@@ -19,13 +19,13 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
       tmpHash = {:name => name, :ensure => "absent"}
     else
       if !notificationInfo.empty?
-        serviceInfo[0]['attrs'][:notification_templates]   = notificationInfo[0]['attrs'][:templates]
-        serviceInfo[0]['attrs'][:notification_users]       = notificationInfo[0]['attrs'][:users]
-        serviceInfo[0]['attrs'][:notification_user_groups] = notificationInfo[0]['attrs'][:notification_user_groups]
+        serviceInfo[0]['attrs']["notification_templates"]   = notificationInfo[0]['attrs']["templates"]
+        serviceInfo[0]['attrs']["notification_users"]       = notificationInfo[0]['attrs']["users"]
+        serviceInfo[0]['attrs']["notification_user_groups"] = notificationInfo[0]['attrs']["user_groups"]
       else
-        serviceInfo[0]['attrs'][:notification_templates]   = []
-        serviceInfo[0]['attrs'][:notification_users]       = []
-        serviceInfo[0]['attrs'][:notification_user_groups] = []
+        serviceInfo[0]['attrs']["notification_templates"]   = []
+        serviceInfo[0]['attrs']["notification_users"]       = []
+        serviceInfo[0]['attrs']["notification_user_groups"] = []
       end
 
       tmpHash[:ensure] = "present"
@@ -38,6 +38,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
             if nameOfAttribute == "templates"
               currentTemplates = valueOfAttribute.select do |template|
                    template != name[0]
+              end
               tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
             else
               tmpHash[nameOfAttribute.to_sym] = valueOfAttribute
@@ -143,7 +144,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        notificationData = {"attrs" => {"user_groups" => should[:notification_user_groups], "users" => should[:notification_users]}, "templates" => should[:notification_templates]}
 
        if is[:notification_users] != [] || is[:notification_user_groups] != [] || is[:notification_templates] != []
-          delete(context, notificationName, "notificatons")  # DELETE NOTIFICATION ONLY IF EXISTS
+          delete(context, notificationName, "notifications")  # DELETE NOTIFICATION ONLY IF EXISTS
        end
 
        if should[:enable_notifications] == true
