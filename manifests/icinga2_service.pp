@@ -13,9 +13,8 @@ define icinga2::icinga2_service (
     $_attributes_to_set = [
                             "check_command", "templates", "vars",
                             "check_interval", "retry_interval", "check_timeout",
-                            "enable_notifications", "notification_user_groups",
+                            "enable_notifications", "notification_user_groups", "display_name",
                             "notification_users", "notification_templates", 
-                            "display_name",
                           ]
 
     $_attributes_to_set.each |$_key| {
