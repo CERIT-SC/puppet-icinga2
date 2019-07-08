@@ -130,7 +130,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   def update(context, name, is, should)
     method = "post"
     if is[:groups] != should[:groups]
-       delete(context, name, URL)
+       delete(context, name)
        should[:groups].each do |group| #IS THERE NEW GROUP?
           checkHostGroup(group, URL)
        end
