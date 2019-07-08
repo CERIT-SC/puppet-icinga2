@@ -12,7 +12,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     result   = []
     tmpHash  = {}
     serviceInfo      = getInformation(name, URL + "services")
-    notificationName = name[0] + "!" + name[0].split("!")[1] + "-notification"
+    notificationName = [name[0] + "!" + name[0].split("!")[1] + "-notification"]
     notificationInfo = getInformation(notificationName, URL + "notifications")
 
     if serviceInfo.empty?
@@ -35,6 +35,11 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
         next if SETTABLEATTRIBUTES.empty?
         
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
+            if nameOfAttribute == "templates"
+              currentTemplates = valueOfAttribute.select do |template|
+                   template != name[0]
+              tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
+            end
             tmpHash[nameOfAttribute.to_sym] = valueOfAttribute
         end
       end
@@ -99,7 +104,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
 
 
   def createNotification(name, attributes)
-    notificationName = name[0] + "!" + name[0].split("!")[1] + "-notification"
+    notificationName = name + "!" + name.split("!")[1] + "-notification"
     url = URL + "notifications/#{notificationName}"
     begin
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
@@ -131,14 +136,12 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   
   
   def update(context, name, is, should)
-    if    (is[:notification_users] != should[:notification_users])
-       or (is[:notification_user_groups] != should[:notification_user_groups])
-       or (is[:notification_templates] != should[:notification_templates])
+    if (is[:notification_users] != should[:notification_users]) || (is[:notification_user_groups] != should[:notification_user_groups]) || (is[:notification_templates] != should[:notification_templates])
 
-       notificationName = name[0] + "!" + name[0].split("!")[1] + "-notification"
+       notificationName = name + "!" + name.split("!")[1] + "-notification"
        notificationData = {"attrs" => {"user_groups" => should[:notification_user_groups], "users" => should[:notification_users]}, "templates" => should[:notification_templates]}
 
-       if is[:notification_users] != [] or is[:notification_user_groups] != [] or is[:notification_templates] != []
+       if is[:notification_users] != [] || is[:notification_user_groups] != [] || is[:notification_templates] != []
           delete(context, notificationName, "notificatons")  # DELETE NOTIFICATION ONLY IF EXISTS
        end
 

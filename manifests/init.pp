@@ -1,7 +1,7 @@
 class icinga2 (
    Array $groups  = [],
 ) {
-  include icinga2::install
+  require icinga2::install
    
   class {'icinga2::api':
     user     => lookup('icinga2::user'),

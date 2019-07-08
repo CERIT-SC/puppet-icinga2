@@ -10,4 +10,18 @@ class icinga2::install {
 
   $_packages = lookup('icinga2::packages', Array[String], 'first', [])
   ensure_packages($_packages)
+  
+  concat { "/var/tmp/icinga2_service_resources":
+    ensure  => present,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
+  
+  concat { "/var/tmp/icinga2_host_resources":
+    ensure  => present,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+  }
 }
