@@ -18,7 +18,7 @@ Puppet::ResourceApi.register_type(
       desc: 'Name of service. Value must be string type.',
       behaviour: :namevar,
     },
-    check_commmand: {
+    check_command: {
       type: 'String',
       desc: 'check command',
     },
