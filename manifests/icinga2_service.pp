@@ -36,6 +36,7 @@ define icinga2::icinga2_service (
       notification_user_groups => $notification_user_groups,
       notification_users       => $notification_users,
       notification_templates   => $notification_templates,
+      require                  => File['icinga2_url'],
     }
 
 #     $_new_url    = $::icinga2::api::new_url
