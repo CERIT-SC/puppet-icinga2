@@ -15,7 +15,7 @@ Puppet::ResourceApi.register_type(
     },
     name: {
       type: 'String',
-      desc: 'Name of host. Value must be string type.',
+      desc: 'Name of service. Value must be string type.',
       behaviour: :namevar,
     },
     check_commmand: {
@@ -33,19 +33,19 @@ Puppet::ResourceApi.register_type(
       default: {},
     },
     check_interval: {
-      type: 'Optional[Integer]',
+      type: 'Optional[Float]',
       desc: 'check interval',
-      default: 300,
+      default: 300.0,
     },
     retry_interval: {
-      type: 'Optional[Integer]',
+      type: 'Optional[Float]',
       desc: 'retry interval',
-      default: 60,
+      default: 60.0,
     },
     check_timeout: {
-      type: 'Optional[Integer]',
+      type: 'Optional[Float]',
       desc: 'check timeout',
-      default: 30,
+      default: 30.0,
     },
     enable_notifications: {
       type: 'Optional[Boolean]',
