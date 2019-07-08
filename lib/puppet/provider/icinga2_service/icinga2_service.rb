@@ -37,7 +37,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
             if nameOfAttribute == "templates"
               currentTemplates = valueOfAttribute.select do |template|
-                   template != name[0]
+                   template != name[0].split("!")[1]
               end
               tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
             else
