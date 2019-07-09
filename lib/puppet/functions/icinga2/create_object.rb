@@ -46,6 +46,7 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
          delete(object_url + "?cascade=1")
          update(arguments, "put", object_url)
      else
+         arguments["attrs"].delete("groups")
          update(arguments, "post", object_url)
      end
   end
