@@ -14,7 +14,7 @@ class icinga2 (
     check_command        => "hostalive",
     address              => $facts['ipaddress'],
     groups               => $groups,
-    vars                 => lookup({'name' => 'icinga2::vars', 'default_value' => {}}),
+    vars                 => lookup({'name' => 'icinga2::host_vars', 'default_value' => {}}),
     templates            => ["generic-host"],
     enable_notifications => true,
   }
