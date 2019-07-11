@@ -20,7 +20,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       tmpHash = {:name => name, :ensure => "absent"}
     else
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name[0]
+      tmpHash[:name]   = name
       hostInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty?
@@ -30,7 +30,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
             tmpHash[nameOfAttribute.to_sym] = valueOfAttribute.sort  # TENTO IF KOLI ZOTREDENIU PRVKOV V POLI
           elsif nameOfAttribute == "templates"  # UZIVATEL NEZADAVA TEMPLATE S TYM ISTYM MENOM AKO STROJ. ALE ICINGA HEJ
             currentTemplates = valueOfAttribute.select do |template|
-               template != name[0]
+               template != name
             end
             tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
           else
@@ -66,15 +66,15 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
                     name
                   end
   
-      if is[:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
+      if is[0][:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
         context.creating(name) do
           create(context, name_hash, should)
         end
-      elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
+      elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
         context.updating(name) do
-          update(context, name_hash, is, should)
+          update(context, name_hash, is[0], should)
         end
-      elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
+      elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
         context.deleting(name) do
           delete(context, name_hash, url)
         end
@@ -105,7 +105,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
        return []
     end
     result = JSON.parse(result)
-    return result['results'].select{ |item| item['name'] == name[0] }
+    return result['results'].select{ |item| item['name'] == name }
   end
 
   
@@ -117,9 +117,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     begin
        url = should[:url] + "hosts/#{name}"
        templates = should[:templates]
-       ##########################
        removeUselessAttributes(should)
-       #########################
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
@@ -127,11 +125,14 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     end
   end
   
-  def removeUselessAttributes(attributes)
-      attributes.delete("templates")
-      attributes.delete("name")
-      attributes.delete("ensure")
-      attributes.delete("url")
+  def removeUselessAttributes(attributes, removeGroups = false)
+      attributes.delete(:templates)
+      attributes.delete(:name)
+      attributes.delete(:ensure)
+      attributes.delete(:url)
+      if removeGroups
+        attributes.delete(:groups)
+      end
   end
   
   def update(context, name, is, should)
@@ -147,9 +148,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     begin
        url = should[:url] + "hosts/#{name}"
        templates = should[:templates]
-       #########################
        removeUselessAttributes(should) 
-       #########################
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
