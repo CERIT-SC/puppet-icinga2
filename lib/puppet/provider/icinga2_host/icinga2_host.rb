@@ -148,7 +148,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     begin
        url = should[:url] + "hosts/#{name}"
        templates = should[:templates]
-       removeUselessAttributes(should) 
+       removeUselessAttributes(should, method == "post" ? true : false) 
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
