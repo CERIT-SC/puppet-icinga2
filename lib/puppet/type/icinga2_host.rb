@@ -83,4 +83,4 @@ Puppet::ResourceApi.register_type(
       behaviour: :parameter,
     },
   },
-
+)
