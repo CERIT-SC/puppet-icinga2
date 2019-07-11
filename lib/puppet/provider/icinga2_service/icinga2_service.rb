@@ -64,7 +64,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
       raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
   
       should = { name: name, ensure: 'absent' } if should.nil?
-      url - should[:url]
+      url = should[:url]
       name_hash = if context.type.namevars.length > 1
                     # pass a name_hash containing the values of all namevars
                     name_hash = { title: name }
