@@ -6,12 +6,15 @@ require 'json'
 class Puppet::Provider::Icinga2Host::Icinga2Host 
 
   SETTABLEATTRIBUTES ||= FileTest.exist?("/var/tmp/icinga2_host_resources") ? File.read("/var/tmp/icinga2_host_resources").split("\n").freeze : []
-  URL                ||= FileTest.exist?("/var/tmp/icinga2_url") ? File.read("/var/tmp/icinga2_url").freeze : ""
 
-  def get(context, name )
+  def get(context, name)
+    return []
+  end
+
+  def myGet(name, url)
     result   = []
     tmpHash  = {}
-    hostInfo = getInformation(name, URL + "hosts")
+    hostInfo = getInformation(name, url + "hosts")
 
     if hostInfo.empty?
       tmpHash = {:name => name, :ensure => "absent"}
@@ -44,18 +47,14 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   
   def set(context, changes)
     changes.each do |name, change|
-      is = if context.type.feature?('simple_get_filter')
-        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name }
-      else
-        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name }
-      end
+      is = myGet(name, change[:should][:url])
       context.type.check_schema(is) unless change.key?(:is)
   
       should = change[:should]
       raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
   
-      is = { name: name, ensure: 'absent' } if is.nil?
       should = { name: name, ensure: 'absent' } if should.nil?
+      url    = should[:url]
       name_hash = if context.type.namevars.length > 1
                     # pass a name_hash containing the values of all namevars
                     name_hash = { title: name }
@@ -77,7 +76,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
         context.deleting(name) do
-          delete(context, name_hash)
+          delete(context, name_hash, url)
         end
       end
     end
@@ -112,13 +111,15 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   
   def create(context, name, should)
     should[:groups].each do |group|
-       checkHostGroup(group, URL)
+       checkHostGroup(group, should[:url])
     end
 
     begin
-       url = URL + "hosts/#{name}"
+       url = should[:url] + "hosts/#{name}"
        templates = should[:templates]
-       should.delete("templates")
+       ##########################
+       removeUselessAttributes(should)
+       #########################
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
@@ -126,21 +127,29 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     end
   end
   
+  def removeUselessAttributes(attributes)
+      attributes.delete("templates")
+      attributes.delete("name")
+      attributes.delete("ensure")
+      attributes.delete("url")
+  end
   
   def update(context, name, is, should)
     method = "post"
     if is[:groups] != should[:groups]
-       delete(context, name)
+       delete(context, name, should[:url])
        should[:groups].each do |group| #IS THERE NEW GROUP?
-          checkHostGroup(group, URL)
+          checkHostGroup(group, should[:url])
        end
        method = "put"
     end
 
     begin
-       url = URL + "hosts/#{name}"
+       url = should[:url] + "hosts/#{name}"
        templates = should[:templates]
-       should.delete("templates")
+       #########################
+       removeUselessAttributes(should) 
+       #########################
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
@@ -149,8 +158,8 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   end
   
 
-  def delete(context, name)
-    url = URL + "hosts/#{name}?cascade=1"
+  def delete(context, name, url)
+    url = url + "hosts/#{name}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error

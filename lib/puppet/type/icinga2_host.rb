@@ -77,5 +77,10 @@ Puppet::ResourceApi.register_type(
       desc: 'enable notifications',
       default: false,
     },
+    url: {
+      type: 'String',
+      desc: 'API url',
+      behaviour: :parameter,
+    },
   },
-)
+
