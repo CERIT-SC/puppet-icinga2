@@ -71,7 +71,7 @@ Puppet::ResourceApi.register_type(
       type: 'String',
       desc: 'display name of service',
     },
-    user: {
+    url: {
       type: 'String',
       desc: 'API url',
       behaviour: :parameter,
