@@ -6,14 +6,17 @@ require 'json'
 class Puppet::Provider::Icinga2Service::Icinga2Service
 
   SETTABLEATTRIBUTES ||= FileTest.exist?("/var/tmp/icinga2_service_resources") ? File.read("/var/tmp/icinga2_service_resources").split("\n").freeze : []
-  URL                ||= FileTest.exist?("/var/tmp/icinga2_url") ? File.read("/var/tmp/icinga2_url").freeze : ""
 
   def get(context, name)
+    return []
+  end
+
+  def myGet(name, url)
     result   = []
     tmpHash  = {}
-    serviceInfo      = getInformation(name, URL + "services")
+    serviceInfo      = getInformation(name, url + "services")
     notificationName = [name[0] + "!" + name[0].split("!")[1] + "-notification"]
-    notificationInfo = getInformation(notificationName, URL + "notifications")
+    notificationInfo = getInformation(notificationName, url + "notifications")
 
     if serviceInfo.empty?
       tmpHash = {:name => name, :ensure => "absent"}
@@ -54,18 +57,14 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   
   def set(context, changes)
     changes.each do |name, change|
-      is = if context.type.feature?('simple_get_filter')
-        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name }
-      else
-        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name }
-      end
+      is = myGet(name, change[:should][:url])[0]
       context.type.check_schema(is) unless change.key?(:is)
   
       should = change[:should]
       raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
   
-      is = { name: name, ensure: 'absent' } if is.nil?
       should = { name: name, ensure: 'absent' } if should.nil?
+      url - should[:url]
       name_hash = if context.type.namevars.length > 1
                     # pass a name_hash containing the values of all namevars
                     name_hash = { title: name }
@@ -87,7 +86,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
         context.deleting(name) do
-          delete(context, name_hash, "services")
+          delete(context, name_hash, "services", url)
         end
       end
     end
@@ -107,7 +106,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
 
   def createNotification(name, attributes)
     notificationName = name + "!" + name.split("!")[1] + "-notification"
-    url = URL + "notifications/#{notificationName}"
+    url = should[:url] + "notifications/#{notificationName}"
     begin
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
@@ -122,7 +121,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     should.delete("notification_user_groups")
     should.delete("notification_templates")
     begin
-       url = URL + "services/#{name}"
+       url = should[:url] + "services/#{name}"
        templates = should[:templates]
        should.delete("templates")
        attributes = {"attrs" => should, "templates" => templates}
@@ -144,7 +143,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        notificationData = {"attrs" => {"user_groups" => should[:notification_user_groups], "users" => should[:notification_users]}, "templates" => should[:notification_templates]}
 
        if is[:notification_users] != [] || is[:notification_user_groups] != [] || is[:notification_templates] != []
-          delete(context, notificationName, "notifications")  # DELETE NOTIFICATION ONLY IF EXISTS
+          delete(context, notificationName, "notifications", should[:url])  # DELETE NOTIFICATION ONLY IF EXISTS
        end
 
        if should[:enable_notifications] == true
@@ -157,7 +156,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     should.delete("notification_templates")
 
     begin
-       url = URL + "services/#{name}"
+       url = should[:url] + "services/#{name}"
        templates = should[:templates]
        should.delete("templates")
        attributes = {"attrs" => should, "templates" => templates}
@@ -168,8 +167,8 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   end
   
 
-  def delete(context, name, object)
-    url = URL + "#{object}/#{name}?cascade=1"
+  def delete(context, name, object, url)
+    url = should[:url] + "#{object}/#{name}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
