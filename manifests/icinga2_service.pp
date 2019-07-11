@@ -55,6 +55,6 @@ define icinga2::icinga2_service (
                     "notification" => { "user_groups" => $notification_user_groups, "users" => $notification_users },
                     "notification_templates" => $notification_templates
                   }
-o
+
      icinga2::create_object($title, "service", $arguments, $_new_url)
 }
