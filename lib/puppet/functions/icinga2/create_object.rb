@@ -79,6 +79,9 @@ Puppet::Functions.create_function(:'icinga2::create_object') do
      object_url =  url + "services/#{hostname}!#{service}"
      result     = get("#{hostname}!#{service}", url + "services")
 
+     arguments.delete("notification")
+     arguments.delete("notification_templates")
+
      if result.empty?
          update(arguments, "put", object_url)
      else
