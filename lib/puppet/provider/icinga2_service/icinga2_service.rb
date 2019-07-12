@@ -134,7 +134,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        templates = should[:templates]
        deleteUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
-       RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
+       RestClient::Request.execute(:url => serviceUrl, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
       return
     end
