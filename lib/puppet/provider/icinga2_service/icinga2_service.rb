@@ -115,21 +115,21 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   end
 
 
- def deleteUselessAttributes(attributes)                                                                                                                                                           │[root@dollbox 
-     attributes.delete(:notification_users)                                                                                                                                                         │icinga2]# cd m
-     attributes.delete(:notification_templates)                                                                                                                                                     │anifests/
-     attributes.delete(:notification_user_groups)                                                                                                                                                   │[root@dollbox 
-     attributes.delete(:name)                                                                                                                                                                       │manifests]# vi
-     attributes.delete(:ensure)                                                                                                                                                                     │m icinga2_serv
-     attributes.delete(:templates)                                                                                                                                                                  │ice.pp 
-     attributes.delete(:url)                                                                                                                                                                        │[root@dollbox 
+ def deleteUselessAttributes(attributes)                                                                                                                                                           
+     attributes.delete(:notification_users)                                                                                                                                                         
+     attributes.delete(:notification_templates)                                                                                                                                                     
+     attributes.delete(:notification_user_groups)                                                                                                                                                  
+     attributes.delete(:name)                                                                                                                                                                       
+     attributes.delete(:ensure)                                                                                                                                                                     
+     attributes.delete(:templates)                                                                                                                                                                  
+     attributes.delete(:url)                                                                                                                                                                        
   end               
 
   
   def create(context, name, should)
     notificationData = {"attrs" => {"user_groups" => should[:notification_user_groups], "users" => should[:notification_users]}, "templates" => should[:notification_templates]}
     begin
-       url = should[:url]                                                                                                                               │   Optional[Float]   $retry_interval           = 60.0,    
+       url = should[:url]                                                                                                                               
        serviceUrl = url + "services/#{name}"
        templates = should[:templates]
        deleteUselessAttributes(should)
