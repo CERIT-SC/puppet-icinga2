@@ -114,16 +114,25 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     end
   end
 
+
+ def deleteUselessAttributes(attributes)                                                                                                                                                           │[root@dollbox 
+     attributes.delete(:notification_users)                                                                                                                                                         │icinga2]# cd m
+     attributes.delete(:notification_templates)                                                                                                                                                     │anifests/
+     attributes.delete(:notification_user_groups)                                                                                                                                                   │[root@dollbox 
+     attributes.delete(:name)                                                                                                                                                                       │manifests]# vi
+     attributes.delete(:ensure)                                                                                                                                                                     │m icinga2_serv
+     attributes.delete(:templates)                                                                                                                                                                  │ice.pp 
+     attributes.delete(:url)                                                                                                                                                                        │[root@dollbox 
+  end               
+
   
   def create(context, name, should)
     notificationData = {"attrs" => {"user_groups" => should[:notification_user_groups], "users" => should[:notification_users]}, "templates" => should[:notification_templates]}
-    should.delete("notification_users")
-    should.delete("notification_user_groups")
-    should.delete("notification_templates")
     begin
-       url = should[:url] + "services/#{name}"
+       url = should[:url]                                                                                                                               │   Optional[Float]   $retry_interval           = 60.0,    
+       serviceUrl = url + "services/#{name}"
        templates = should[:templates]
-       should.delete("templates")
+       deleteUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
