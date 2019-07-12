@@ -15,7 +15,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     result   = []
     tmpHash  = {}
     serviceInfo      = getInformation(name, url + "services")
-    notificationName = [name[0] + "!" + name[0].split("!")[1] + "-notification"]
+    notificationName = name + "!" + name.split("!")[1] + "-notification"
     notificationInfo = getInformation(notificationName, url + "notifications")
 
     if serviceInfo.empty?
@@ -32,7 +32,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
       end
 
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name[0]
+      tmpHash[:name]   = name
       serviceInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty?
@@ -40,7 +40,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
             if nameOfAttribute == "templates"
               currentTemplates = valueOfAttribute.select do |template|
-                   template != name[0].split("!")[1]
+                   template != name.split("!")[1]
               end
               tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
             else
@@ -100,13 +100,13 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        return []
     end
     result = JSON.parse(result)
-    return result['results'].select{ |item| item['name'] == name[0] }
+    return result['results'].select{ |item| item['name'] == name }
   end
 
 
-  def createNotification(name, attributes)
+  def createNotification(name, attributes, url)
     notificationName = name + "!" + name.split("!")[1] + "-notification"
-    url = should[:url] + "notifications/#{notificationName}"
+    url = url + "notifications/#{notificationName}"
     begin
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
@@ -131,7 +131,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     end
 
     if should[:enable_notifications] == true
-       createNotification(name, notificationData)
+       createNotification(name, notificationData, url)
     end
   end
   
@@ -147,7 +147,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        end
 
        if should[:enable_notifications] == true
-          createNotification(notificationName, notificationData) # CREATE NOTIFICATION ONLY IF IS ENABLED
+          createNotification(notificationName, notificationData, should[:url]) # CREATE NOTIFICATION ONLY IF IS ENABLED
        end
     end
 
@@ -168,7 +168,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   
 
   def delete(context, name, object, url)
-    url = should[:url] + "#{object}/#{name}?cascade=1"
+    url = url + "#{object}/#{name}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED => error
