@@ -42,26 +42,4 @@ define icinga2::icinga2_host (
       enable_notifications => $enable_notification,
       url                  => $_new_url,
     }
-
-#    $_new_url = $::icinga2::api::new_url
-#    
-#    $_argumments = { "attrs"                 => {
-#                       "address"              => $address,
-#                       "display_name"         => $display_name,
-#                       "vars"                 => $vars,
-#                       "check_command"        => $check_command,
-#                       "check_interval"       => $check_interval,
-#                       "retry_interval"       => $retry_interval,
-#                       "check_timeout"        => $check_timeout,
-#                       "enable_active_checks" => $enable_active_checks,
-#                       "enable_event_handler" => $enable_event_handler,
-#                       "enable_notifications" => $enable_notifications,
-#                       "groups"               => $groups,
-#                    },
-#     }
-#     
-#     $_filtered_argumments = $_argumments['attrs'].filter |$k, $v| { $v != undef or $v != "" }
-#     $arguments = { "attrs" => $_filtered_argumments, "templates" => $templates }
-# 
-#     icinga2::create_object($title, "host", $arguments, $_new_url)
 }
