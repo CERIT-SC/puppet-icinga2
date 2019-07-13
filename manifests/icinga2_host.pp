@@ -13,7 +13,7 @@ define icinga2::icinga2_host (
    Optional[Boolean] $enable_event_handler = true,
    Optional[Boolean] $enable_notifications = false,
 ) {
-    $_new_urls = $::icinga2::api::new_urls
+    $_new_urls = $::icinga2::api::_new_urls
 
     $_attributes_to_set = [
                             "address", "display_name", "groups",
