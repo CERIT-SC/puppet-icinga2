@@ -10,7 +10,7 @@ define icinga2::icinga2_service (
    Optional[Array]   $notification_users       = [],
    Optional[Array]   $notification_templates   = [],
 ) {
-    $_new_urls    = $::icinga2::api::new_urls
+    $_new_urls    = $::icinga2::api::_new_urls
     $_attributes_to_set = [
                             "check_command", "templates", "vars",
                             "check_interval", "retry_interval", "check_timeout",
