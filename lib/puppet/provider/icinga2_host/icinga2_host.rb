@@ -91,7 +91,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
        attributes = {"attr" => {"display_name" => hostgroup}}
        begin
           RestClient::Request.execute(:url => objectUrl, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-       rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
+       rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error
           return
        end
     end
@@ -101,7 +101,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   def getInformation(name, url)
     begin
        result = RestClient::Request.execute(:url => url, :method => "get", :verify_ssl => false, :timeout => 10, :headres => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error
        return []
     end
     result = JSON.parse(result)
@@ -120,7 +120,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
        removeUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error
       return
     end
   end
@@ -151,7 +151,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
        removeUselessAttributes(should, method == "post" ? true : false) 
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => method, :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error
       return
     end
   end
@@ -161,7 +161,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     url = url + "hosts/#{name}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error
       return
     end
   end
