@@ -96,7 +96,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   def getInformation(name, url)
     begin
        result = RestClient::Request.execute(:url => url, :method => "get", :verify_ssl => false, :timeout => 10, :headres => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
        return []
     end
     result = JSON.parse(result)
@@ -109,7 +109,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     url = url + "notifications/#{notificationName}"
     begin
        RestClient::Request.execute(:url => url, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
        return 
     end
   end
@@ -135,7 +135,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        deleteUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => serviceUrl, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
       return
     end
 
@@ -170,7 +170,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        should.delete("templates")
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => "post", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
       return
     end
   end
@@ -180,7 +180,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     url = url + "#{object}/#{name}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
-    rescue Errno::ECONNREFUSED => error
+    rescue Errno::ECONNREFUSED, Errno::ENETUNREACH => error
       return
     end
   end
