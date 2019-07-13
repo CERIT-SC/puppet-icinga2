@@ -4,9 +4,9 @@ class icinga2 (
   require icinga2::install
    
   class {'icinga2::api':
-    user     => lookup('icinga2::user'),
-    password => lookup('icinga2::password'),
-    url      => lookup('icinga2::url'),
+    users     => lookup('icinga2::user'),
+    passwords => lookup('icinga2::password'),
+    urls      => lookup('icinga2::url'),
   }
 
   icinga2::icinga2_host { $facts['fqdn']:
