@@ -1,13 +1,17 @@
 class icinga2::api (
-  String $user,
-  String $password,
-  String $url,
+  Array[String] $users,
+  Array[String] $passwords,
+  Array[String] $urls,
 ) {
-     $_last_char = inline_template('<%= @url[-1,1] %>')
+     $users.map |Integer $index, String $user| {
+         $_last_char = inline_template('<%= @urls[@index][-1,1] %>')
 
-     if $_last_char == "/" {
-        $new_url = regsubst($url, "^(.*):\/\/(.*)", "\1://${user}:${password}@\2v1/objects/")
-     } else {
-        $new_url = regsubst($url, "^(.*):\/\/(.*)", "\1://${user}:${password}@\2/v1/objects/")
+         if $_last_char == "/" {
+            regsubst($urls[$index], "^(.*):\/\/(.*)", "\1://${users[$index]}:${passwords[$index]}@\2v1/objects/")
+         } else {
+            regsubst($urls[$index], "^(.*):\/\/(.*)", "\1://${users[$index]}:${passwords[$index]}@\2/v1/objects/")
+         }
      }
+     
+     $_new_urls = $users
 }
