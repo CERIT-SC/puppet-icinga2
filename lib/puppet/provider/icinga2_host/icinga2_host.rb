@@ -47,36 +47,37 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   
   def set(context, changes)
     changes.each do |name, change|
-      is = myGet(name, change[:should][:url])
-      context.type.check_schema(is) unless change.key?(:is)
-  
-      should = change[:should]
-      raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
-  
-      should = { name: name, ensure: 'absent' } if should.nil?
-      url    = should[:url]
-      name_hash = if context.type.namevars.length > 1
-                    # pass a name_hash containing the values of all namevars
-                    name_hash = { title: name }
-                    context.type.namevars.each do |namevar|
-                      name_hash[namevar] = change[:should][namevar]
+      change[:should][:url].each do |url|
+        is = myGet(name, url)
+        context.type.check_schema(is) unless change.key?(:is)
+
+        should = change[:should]
+        raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
+
+        should = { name: name, ensure: 'absent' } if should.nil?
+        name_hash = if context.type.namevars.length > 1
+                      # pass a name_hash containing the values of all namevars
+                      name_hash = { title: name }
+                      context.type.namevars.each do |namevar|
+                        name_hash[namevar] = change[:should][namevar]
+                      end
+                      name_hash
+                    else
+                      name
                     end
-                    name_hash
-                  else
-                    name
-                  end
-  
-      if is[0][:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
-        context.creating(name) do
-          create(context, name_hash, should)
-        end
-      elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
-        context.updating(name) do
-          update(context, name_hash, is[0], should)
-        end
-      elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
-        context.deleting(name) do
-          delete(context, name_hash, url)
+
+        if is[0][:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
+          context.creating(name) do
+            create(context, name_hash, should.clone, url)
+          end
+        elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
+          context.updating(name) do
+            update(context, name_hash, is[0], should.clone, url)
+          end
+        elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
+          context.deleting(name) do
+            delete(context, name_hash, url)
+          end
         end
       end
     end
@@ -109,13 +110,13 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   end
 
   
-  def create(context, name, should)
+  def create(context, name, should, url)
     should[:groups].each do |group|
-       checkHostGroup(group, should[:url])
+       checkHostGroup(group, url)
     end
 
     begin
-       url = should[:url] + "hosts/#{name}"
+       url = url + "hosts/#{name}"
        templates = should[:templates]
        removeUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
@@ -135,18 +136,18 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       end
   end
   
-  def update(context, name, is, should)
+  def update(context, name, is, should, url)
     method = "post"
     if is[:groups] != should[:groups]
-       delete(context, name, should[:url])
+       delete(context, name, url)
        should[:groups].each do |group| #IS THERE NEW GROUP?
-          checkHostGroup(group, should[:url])
+          checkHostGroup(group, url)
        end
        method = "put"
     end
 
     begin
-       url = should[:url] + "hosts/#{name}"
+       url = url + "hosts/#{name}"
        templates = should[:templates]
        removeUselessAttributes(should, method == "post" ? true : false) 
        attributes = {"attrs" => should, "templates" => templates}
