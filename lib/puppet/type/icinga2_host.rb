@@ -78,8 +78,8 @@ Puppet::ResourceApi.register_type(
       default: false,
     },
     url: {
-      type: 'String',
-      desc: 'API url',
+      type: 'Array',
+      desc: 'API urls',
       behaviour: :parameter,
     },
   },
