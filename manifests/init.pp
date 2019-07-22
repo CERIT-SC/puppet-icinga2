@@ -1,5 +1,5 @@
 class icinga2 (
-   Array  $groups      = [],
+   Array  $groups     = [],
    String $ip_address = $facts['ipaddress'],
 ) {
   require icinga2::install
