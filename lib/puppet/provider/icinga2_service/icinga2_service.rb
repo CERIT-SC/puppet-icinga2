@@ -161,14 +161,10 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
        end
     end
 
-    should.delete("notification_users")
-    should.delete("notification_user_groups")
-    should.delete("notification_templates")
-
     begin
        url = url + "services/#{name}"
        templates = should[:templates]
-       should.delete("templates")
+       deleteUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
        RestClient::Request.execute(:url => url, :method => "post", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error
