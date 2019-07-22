@@ -1,5 +1,6 @@
 class icinga2 (
-   Array $groups  = [],
+   Array  $groups      = [],
+   String $ip_address = $facts['ipaddress'],
 ) {
   require icinga2::install
    
@@ -12,7 +13,7 @@ class icinga2 (
   icinga2::icinga2_host { $facts['fqdn']:
     ensure               => "present",
     check_command        => "hostalive",
-    address              => $facts['ipaddress'],
+    address              => $ip_address,
     groups               => $groups,
     vars                 => lookup({'name' => 'icinga2::host_vars', 'default_value' => {}}),
     templates            => ["generic-host"],
