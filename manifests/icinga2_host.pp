@@ -22,6 +22,15 @@ define icinga2::icinga2_host (
                             "check_timeout", "enable_active_checks",
                             "enable_event_handler", "enable_notifications"
                           ]
+                          
+    unless defined(Concat['/var/tmp/icinga2_host_resources']) {
+      concat { "/var/tmp/icinga2_host_resources":
+        ensure  => present,
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+      }
+    }
 
     $_attributes_to_set.each |$_key| {
       ensure_resource('icinga2::host_res', $_key, {})
