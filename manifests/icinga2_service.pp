@@ -18,6 +18,15 @@ define icinga2::icinga2_service (
                             "notification_users", "notification_templates", 
                           ]
 
+    unless defined(Concat['/var/tmp/icinga2_service_resources']) {
+      concat { "/var/tmp/icinga2_service_resources":
+        ensure  => present,
+        mode    => '0644',
+        owner   => 'root',
+        group   => 'root',
+      }
+    }
+
     $_attributes_to_set.each |$_key| {
       ensure_resource('icinga2::service_res', $_key, {})
     }
