@@ -2,7 +2,7 @@ class icinga2 (
    Array  $groups     = [],
    String $ip_address = $facts['ipaddress'],
 ) {
-  require icinga2::install
+  include icinga2::install
    
   class {'icinga2::api':
     users     => lookup('icinga2::user'),
