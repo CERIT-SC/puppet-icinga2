@@ -21,7 +21,9 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
       tmpHash = {:name => name[0], :ensure => "absent"}
     else
       if !notificationInfo.empty?
-        serviceInfo[0]['attrs']["notification_templates"]   = notificationInfo[0]['attrs']["templates"]
+        serviceInfo[0]['attrs']["notification_templates"]   = notificationInfo[0]['attrs']["templates"].select do |template|
+          (template != notificationName.split("!")[2]) and (template !~ /^mail-service-notification$/)
+        end
         serviceInfo[0]['attrs']["notification_users"]       = notificationInfo[0]['attrs']["users"]
         serviceInfo[0]['attrs']["notification_user_groups"] = notificationInfo[0]['attrs']["user_groups"]
       else
