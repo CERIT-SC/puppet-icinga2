@@ -6,15 +6,14 @@ require 'json'
 class Puppet::Provider::Icinga2Host::Icinga2Host 
 
   SETTABLEATTRIBUTES ||= FileTest.exist?("/var/tmp/icinga2_host_resources") ? File.read("/var/tmp/icinga2_host_resources").split("\n").freeze : []
+  URL                ||= FileTest.exist?("/var/tmp/icinga2_url") ? File.read("/var/tmp/icinga2_url").freeze : ""
 
   def get(context, name)
-    return []
-  end
+    return [] if URL.empty?
 
-  def myGet(name, url)
     result   = []
     tmpHash  = {}
-    hostInfo = getInformation(name, url + "hosts")
+    hostInfo = getInformation(name, URL + "hosts")
 
     if hostInfo.empty?
       tmpHash = {:name => name, :ensure => "absent"}
@@ -46,38 +45,42 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   
   
   def set(context, changes)
+    return if URL.empty?
     changes.each do |name, change|
-      change[:should][:url].each do |url|
-        is = myGet(name, url)
-        context.type.check_schema(is) unless change.key?(:is)
+      is = if context.type.feature?('simple_get_filter')
+        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name }
+      else
+        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name }
+      end
+      context.type.check_schema(is) unless change.key?(:is)
 
-        should = change[:should]
-        raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
+      should = change[:should]
+      raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
 
-        should = { name: name, ensure: 'absent' } if should.nil?
-        name_hash = if context.type.namevars.length > 1
-                      # pass a name_hash containing the values of all namevars
-                      name_hash = { title: name }
-                      context.type.namevars.each do |namevar|
+      is = { name: name, ensure: 'absent' } if is.nil?
+      should = { name: name, ensure: 'absent' } if should.nil?
+      name_hash = if context.type.namevars.length > 1
+                    # pass a name_hash containing the values of all namevars
+                    name_hash = { title: name }
+                    context.type.namevars.each do |namevar|
                         name_hash[namevar] = change[:should][namevar]
-                      end
-                      name_hash
-                    else
-                      name
                     end
+                    name_hash
+                  else
+                    name
+                  end
 
-        if is[0][:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
-          context.creating(name) do
-            create(context, name_hash, should.clone, url)
-          end
-        elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
-          context.updating(name) do
-            update(context, name_hash, is[0], should.clone, url)
-          end
-        elsif is[0][:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
-          context.deleting(name) do
-            delete(context, name_hash, url)
-          end
+      if is[:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
+        context.creating(name) do
+          create(context, name_hash, should.clone, URL)
+        end
+      elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
+        context.updating(name) do
+          update(context, name_hash, is, should.clone, URL)
+        end
+      elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
+        context.deleting(name) do
+          delete(context, name_hash, URL)
         end
       end
     end
@@ -88,7 +91,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     isThereGroup = getInformation(hostgroup, url + "hostgroups")
     
     if isThereGroup.empty?
-       objectUrl = url + "hostgroups/#{hostgroup}"
+       objectUrl = URL + "hostgroups/#{hostgroup}"
        attributes = {"attr" => {"display_name" => hostgroup}}
        begin
           RestClient::Request.execute(:url => objectUrl, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
@@ -130,7 +133,6 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       attributes.delete(:templates)
       attributes.delete(:name)
       attributes.delete(:ensure)
-      attributes.delete(:url)
       if removeGroups
         attributes.delete(:groups)
       end

@@ -13,8 +13,6 @@ define icinga2::icinga2_host (
    Optional[Boolean] $enable_event_handler = true,
    Optional[Boolean] $enable_notifications = false,
 ) {
-    $_new_urls = $::icinga2::api::_new_urls
-
     $_attributes_to_set = [
                             "address", "display_name", "groups",
                             "templates", "vars", "check_command",
@@ -49,6 +47,6 @@ define icinga2::icinga2_host (
       enable_active_checks => $enable_active_checks,
       enable_event_handler => $enable_event_handler,
       enable_notifications => $enable_notification,
-      url                  => $_new_urls,
+      require              => Concat['/var/tmp/icinga2_url'],
     }
 }

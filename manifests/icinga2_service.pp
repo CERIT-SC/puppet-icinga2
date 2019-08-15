@@ -10,7 +10,6 @@ define icinga2::icinga2_service (
    Optional[Array]   $notification_users       = [],
    Optional[Array]   $notification_templates   = [],
 ) {
-    $_new_urls    = $::icinga2::api::_new_urls
     $_attributes_to_set = [
                             "check_command", "templates", "vars",
                             "check_interval", "retry_interval", "check_timeout",
@@ -45,7 +44,6 @@ define icinga2::icinga2_service (
       notification_user_groups => $notification_user_groups,
       notification_users       => $notification_users,
       notification_templates   => $notification_templates,
-      url                      => $_new_urls,
       require                  => Icinga2_host[$::fqdn],
     }
 }

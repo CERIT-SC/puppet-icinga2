@@ -24,4 +24,17 @@ class icinga2::install {
     owner   => 'root',
     group   => 'root',
   }
+
+  concat { "/var/tmp/icinga2_url":
+    ensure  => present,
+    mode    => '0700',
+    owner   => 'root',
+    group   => 'root'
+  }
+  
+  concat::fragment { $::icinga2::api::_new_urls[0]:
+    target  => "/var/tmp/icinga2_url",
+    content => "${title}",
+    require => Concat['/var/tmp/icinga2_url'],
+  }
 }
