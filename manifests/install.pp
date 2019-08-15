@@ -32,9 +32,9 @@ class icinga2::install {
     group   => 'root'
   }
   
-  concat::fragment { $::icinga2::api::_new_urls[0]:
+  concat::fragment { "icinga2_url":
     target  => "/var/tmp/icinga2_url",
-    content => "${title}",
+    content => "${::icinga2::api::_new_urls[0]}",
     require => Concat['/var/tmp/icinga2_url'],
   }
 }
