@@ -13,12 +13,12 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
 
     result   = []
     tmpHash  = {}
-    serviceInfo      = getInformation(name, URL + "services")
-    notificationName = name + "!" + name.split("!")[1] + "-notification"
+    serviceInfo      = getInformation(name[0], URL + "services")
+    notificationName = name[0] + "!" + name[0].split("!")[1] + "-notification"
     notificationInfo = getInformation(notificationName, URL + "notifications")
 
     if serviceInfo.empty?
-      tmpHash = {:name => name, :ensure => "absent"}
+      tmpHash = {:name => name[0], :ensure => "absent"}
     else
       if !notificationInfo.empty?
         serviceInfo[0]['attrs']["notification_templates"]   = notificationInfo[0]['attrs']["templates"]
@@ -31,7 +31,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
       end
 
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name
+      tmpHash[:name]   = name[0]
       serviceInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty?
@@ -39,7 +39,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
             if nameOfAttribute == "templates"
               currentTemplates = valueOfAttribute.select do |template|
-                   template != name.split("!")[1]
+                   template != name[0].split("!")[1]
               end
               tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
             else
