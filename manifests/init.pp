@@ -2,13 +2,14 @@ class icinga2 (
    Array  $groups     = [],
    String $ip_address = $facts['ipaddress'],
 ) {
-  include icinga2::install
-   
+     
   class {'icinga2::api':
     users     => lookup('icinga2::user'),
     passwords => lookup('icinga2::password'),
     urls      => lookup('icinga2::url'),
   }
+  
+  include icinga2::install
 
   icinga2::icinga2_host { $facts['fqdn']:
     ensure               => "present",
