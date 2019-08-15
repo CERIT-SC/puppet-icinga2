@@ -13,13 +13,13 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
 
     result   = []
     tmpHash  = {}
-    hostInfo = getInformation(name, URL + "hosts")
+    hostInfo = getInformation(name[0], URL + "hosts")
 
     if hostInfo.empty?
-      tmpHash = {:name => name, :ensure => "absent"}
+      tmpHash = {:name => name[0], :ensure => "absent"}
     else
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name
+      tmpHash[:name]   = name[0]
       hostInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty?
@@ -29,7 +29,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
             tmpHash[nameOfAttribute.to_sym] = valueOfAttribute.sort  # TENTO IF KOLI ZOTREDENIU PRVKOV V POLI
           elsif nameOfAttribute == "templates"  # UZIVATEL NEZADAVA TEMPLATE S TYM ISTYM MENOM AKO STROJ. ALE ICINGA HEJ
             currentTemplates = valueOfAttribute.select do |template|
-               template != name
+               template != name[0]
             end
             tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
           else
