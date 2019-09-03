@@ -33,9 +33,9 @@ define icinga2::icinga2_host (
     unless defined(Concat['/var/tmp/icinga2_url']) {
       concat { "/var/tmp/icinga2_url":
         ensure  => present,
-        mode    => '0700',
+        mode    => '0640',
         owner   => 'root',
-        group   => 'root'
+        group   => 'puppet'
        }
   
        concat::fragment { "icinga2_url":
