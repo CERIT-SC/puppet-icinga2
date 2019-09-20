@@ -80,7 +80,7 @@ Puppet::ResourceApi.register_type(
     url: {
       type: 'String',
       desc: 'Authentication credentials',
-      behaviour: :namevar.
+      behaviour: :namevar,
     }
   },
 )

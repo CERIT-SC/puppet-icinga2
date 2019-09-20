@@ -10,12 +10,12 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   def get(context, name)
     result   = []
     tmpHash  = {}
-    serviceInfo      = getInformation(name[:name], name[:url] + "services")
+    serviceInfo      = getInformation(name[0][:name], name[0][:url] + "services")
     notificationName = name[:name] + "!" + name[:name].split("!")[1] + "-notification"
-    notificationInfo = getInformation(notificationName, name[:url] + "notifications")
+    notificationInfo = getInformation(notificationName, name[0][:url] + "notifications")
 
     if serviceInfo.empty?
-      tmpHash = {:name => name[:name], :url => name[:url], :ensure => "absent"}
+      tmpHash = {:name => name[0][:name], :url => name[0][:url], :ensure => "absent"}
     else
       if !notificationInfo.empty?
         serviceInfo[0]['attrs']["notification_templates"]   = notificationInfo[0]['attrs']["templates"].select do |template|
@@ -30,8 +30,8 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
       end
 
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name[:name]
-      tmpHash[:url]    = name[:url]
+      tmpHash[:name]   = name[0][:name]
+      tmpHash[:url]    = name[0][:url]
       serviceInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty?
@@ -39,7 +39,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
             if nameOfAttribute == "templates"
               currentTemplates = valueOfAttribute.select do |template|
-                   template != name[:name].split("!")[1]
+                   template != name[0][:name].split("!")[1]
               end
               tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
             else
@@ -58,17 +58,17 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     return if URL.empty?
     changes.each do |name, change|
       is = if context.type.feature?('simple_get_filter')
-        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name[:name] }
+        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name[0][:name] }
       else
-        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name[:name] }
+        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name[0][:name] }
       end
       context.type.check_schema(is) unless change.key?(:is)
 
       should = change[:should]
       raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
 
-      is = { name: name[:name], url: name[:url], ensure: 'absent' } if is.nil?
-      should = { name: name[:name], url: name[:url], ensure: 'absent' } if should.nil?
+      is = { name: name[0][:name], url: name[0][:url], ensure: 'absent' } if is.nil?
+      should = { name: name[0][:name], url: name[0][:url], ensure: 'absent' } if should.nil?
       name_hash = if context.type.namevars.length > 1
                     # pass a name_hash containing the values of all namevars
                     name_hash = {}
@@ -81,15 +81,15 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
                   end
 
       if is[:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
-        context.creating(name[:name]) do
+        context.creating(name[0][:name]) do
           create(context, name_hash, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
-        context.updating(name[:name]) do
+        context.updating(name[0][:name]) do
           update(context, name_hash, is, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
-        context.deleting(name[:name]) do
+        context.deleting(name[0][:name]) do
           delete(context, name_hash, "services")
         end
       end
