@@ -77,5 +77,10 @@ Puppet::ResourceApi.register_type(
       desc: 'enable notifications',
       default: false,
     },
+    url: {
+      type: 'String',
+      desc: 'Authentication credentials',
+      behaviour: :namevar.
+    }
   },
 )

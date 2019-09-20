@@ -1,6 +1,6 @@
 class icinga2::install {
 
-  $_allowed_hosts           = lookup('icinga2::allowed_hosts', Array[String], 'first', ['127.0.0.1'])
+  $_allowed_hosts = lookup('icinga2::allowed_hosts', Array[String], 'first', ['127.0.0.1'])
 
   class { 'nrpe':
     allowed_hosts           => $_allowed_hosts,
@@ -23,18 +23,5 @@ class icinga2::install {
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
-  }
-
-  concat { "/var/tmp/icinga2_url":
-    ensure  => present,
-    mode    => '0700',
-    owner   => 'root',
-    group   => 'root'
-  }
-  
-  concat::fragment { "icinga2_url":
-    target  => "/var/tmp/icinga2_url",
-    content => "${::icinga2::api::_new_urls[0]}",
-    require => Concat['/var/tmp/icinga2_url'],
   }
 }

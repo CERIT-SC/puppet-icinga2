@@ -71,5 +71,10 @@ Puppet::ResourceApi.register_type(
       type: 'String',
       desc: 'display name of service',
     },
+    url: {
+      type: 'String',
+      desc: 'Authentication credentials',
+      behaviour: :namevar.
+    }
   },
 )

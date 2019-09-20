@@ -22,9 +22,9 @@ class icinga2 (
   }
 
 
-  $nrpe_commands = lookup('icinga2::nrpe_commands', Hash, 'hash', {})
-  $notify_users  = lookup({'name' => 'icinga2::notify_users', 'default_value' => []})
-  $enable_notifications = lookup({'name' => 'icinga2::enable_notifications', 'default_value' => false})
+  $nrpe_commands          = lookup('icinga2::nrpe_commands', Hash, 'hash', {})
+  $notify_users           = lookup({'name' => 'icinga2::notify_users', 'default_value' => []})
+  $enable_notifications   = lookup({'name' => 'icinga2::enable_notifications', 'default_value' => false})
   $notification_templates = lookup({'name' => 'icinga2::notify_templates', 'default_value' => []})
   
   $nrpe_commands.each |$name, $attr| {

@@ -44,6 +44,7 @@ define icinga2::icinga2_service (
       notification_user_groups => $notification_user_groups,
       notification_users       => $notification_users,
       notification_templates   => $notification_templates,
+      url                      => $::icinga2::api::_new_urls[0],
       require                  => Icinga2_host[$::fqdn],
     }
 }

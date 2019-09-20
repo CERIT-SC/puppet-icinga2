@@ -6,20 +6,18 @@ require 'json'
 class Puppet::Provider::Icinga2Host::Icinga2Host 
 
   SETTABLEATTRIBUTES ||= FileTest.exist?("/var/tmp/icinga2_host_resources") ? File.read("/var/tmp/icinga2_host_resources").split("\n").freeze : []
-  URL                ||= FileTest.exist?("/var/tmp/icinga2_url") ? File.read("/var/tmp/icinga2_url").freeze : ""
 
   def get(context, name)
-    return [] if URL.empty?
-
     result   = []
     tmpHash  = {}
-    hostInfo = getInformation(name[0], URL + "hosts")
+    hostInfo = getInformation(name[:name], name[:url] + "hosts")
 
     if hostInfo.empty?
-      tmpHash = {:name => name[0], :ensure => "absent"}
+      tmpHash = { :name => name[:name], :url => name[:url], :ensure => "absent" }
     else
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name[0]
+      tmpHash[:name]   = name[:name]
+      tmpHash[:url]    = name[:url]
       hostInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty?
@@ -29,7 +27,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
             tmpHash[nameOfAttribute.to_sym] = valueOfAttribute.sort  # TENTO IF KOLI ZOTREDENIU PRVKOV V POLI
           elsif nameOfAttribute == "templates"  # UZIVATEL NEZADAVA TEMPLATE S TYM ISTYM MENOM AKO STROJ. ALE ICINGA HEJ
             currentTemplates = valueOfAttribute.select do |template|
-               template != name[0]
+               template != name[:name]
             end
             tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
           else
@@ -45,23 +43,23 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   
   
   def set(context, changes)
-    return if URL.empty?
+    #CHANGE SOMETHING? WHAT IS FIRST??
     changes.each do |name, change|
       is = if context.type.feature?('simple_get_filter')
-        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name }
+        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name[:name] }
       else
-        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name }
+        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name[:name] }
       end
       context.type.check_schema(is) unless change.key?(:is)
 
       should = change[:should]
       raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
 
-      is = { name: name, ensure: 'absent' } if is.nil?
-      should = { name: name, ensure: 'absent' } if should.nil?
+      is = { name: name[:name], ensure: 'absent' } if is.nil?
+      should = { name: name[:name], ensure: 'absent' } if should.nil?
       name_hash = if context.type.namevars.length > 1
                     # pass a name_hash containing the values of all namevars
-                    name_hash = { title: name }
+                    name_hash = {}
                     context.type.namevars.each do |namevar|
                         name_hash[namevar] = change[:should][namevar]
                     end
@@ -71,16 +69,16 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
                   end
 
       if is[:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
-        context.creating(name) do
-          create(context, name_hash, should.clone, URL)
+        context.creating(name[:name]) do
+          create(context, name_hash, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
-        context.updating(name) do
-          update(context, name_hash, is, should.clone, URL)
+        context.updating(name[:name]) do
+          update(context, name_hash, is, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
-        context.deleting(name) do
-          delete(context, name_hash, URL)
+        context.deleting(name[:name]) do
+          delete(context, name_hash)
         end
       end
     end
@@ -91,7 +89,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
     isThereGroup = getInformation(hostgroup, url + "hostgroups")
     
     if isThereGroup.empty?
-       objectUrl = URL + "hostgroups/#{hostgroup}"
+       objectUrl = url + "hostgroups/#{hostgroup}"
        attributes = {"attr" => {"display_name" => hostgroup}}
        begin
           RestClient::Request.execute(:url => objectUrl, :method => "put", :verify_ssl => false, :timeout => 10, :payload => attributes.to_json, :headers => {"Accept" => "application/json"})
@@ -113,13 +111,13 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   end
 
   
-  def create(context, name, should, url)
+  def create(context, name, should)
     should[:groups].each do |group|
-       checkHostGroup(group, url)
+       checkHostGroup(group, name[:url])
     end
 
     begin
-       url = url + "hosts/#{name}"
+       url = name[:url] + "hosts/#{name[:name]}"
        templates = should[:templates]
        removeUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
@@ -138,18 +136,18 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       end
   end
   
-  def update(context, name, is, should, url)
+  def update(context, name, is, should)
     method = "post"
     if is[:groups] != should[:groups]
-       delete(context, name, url)
+       delete(context, name)
        should[:groups].each do |group| #IS THERE NEW GROUP?
-          checkHostGroup(group, url)
+          checkHostGroup(group, name[:url])
        end
        method = "put"
     end
 
     begin
-       url = url + "hosts/#{name}"
+       url = name[:url] + "hosts/#{name[:name]}"
        templates = should[:templates]
        removeUselessAttributes(should, method == "post" ? true : false) 
        attributes = {"attrs" => should, "templates" => templates}
@@ -160,8 +158,8 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
   end
   
 
-  def delete(context, name, url)
-    url = url + "hosts/#{name}?cascade=1"
+  def delete(context, name)
+    url = name[:url] + "hosts/#{name[:name]}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error

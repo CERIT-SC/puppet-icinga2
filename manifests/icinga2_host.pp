@@ -30,21 +30,6 @@ define icinga2::icinga2_host (
       }
     }
     
-    unless defined(Concat['/var/tmp/icinga2_url']) {
-      concat { "/var/tmp/icinga2_url":
-        ensure  => present,
-        mode    => '0640',
-        owner   => 'root',
-        group   => 'puppet'
-       }
-  
-       concat::fragment { "icinga2_url":
-        target  => "/var/tmp/icinga2_url",
-        content => "${::icinga2::api::_new_urls[0]}",
-        require => Concat['/var/tmp/icinga2_url'],
-       }
-    }
-
     $_attributes_to_set.each |$_key| {
       ensure_resource('icinga2::host_res', $_key, {})
     }
@@ -62,6 +47,6 @@ define icinga2::icinga2_host (
       enable_active_checks => $enable_active_checks,
       enable_event_handler => $enable_event_handler,
       enable_notifications => $enable_notification,
-      require              => Concat['/var/tmp/icinga2_url'],
+      url                  => $::icinga2::api::_new_urls[0],
     }
 }

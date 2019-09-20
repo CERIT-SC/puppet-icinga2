@@ -6,19 +6,16 @@ require 'json'
 class Puppet::Provider::Icinga2Service::Icinga2Service
 
   SETTABLEATTRIBUTES ||= FileTest.exist?("/var/tmp/icinga2_service_resources") ? File.read("/var/tmp/icinga2_service_resources").split("\n").freeze : []
-  URL                ||= FileTest.exist?("/var/tmp/icinga2_url") ? File.read("/var/tmp/icinga2_url").freeze : ""
 
   def get(context, name)
-    return [] if URL.empty?
-
     result   = []
     tmpHash  = {}
-    serviceInfo      = getInformation(name[0], URL + "services")
-    notificationName = name[0] + "!" + name[0].split("!")[1] + "-notification"
-    notificationInfo = getInformation(notificationName, URL + "notifications")
+    serviceInfo      = getInformation(name[:name], name[:url] + "services")
+    notificationName = name[:name] + "!" + name[:name].split("!")[1] + "-notification"
+    notificationInfo = getInformation(notificationName, name[:url] + "notifications")
 
     if serviceInfo.empty?
-      tmpHash = {:name => name[0], :ensure => "absent"}
+      tmpHash = {:name => name[:name], :url => name[:url], :ensure => "absent"}
     else
       if !notificationInfo.empty?
         serviceInfo[0]['attrs']["notification_templates"]   = notificationInfo[0]['attrs']["templates"].select do |template|
@@ -33,7 +30,8 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
       end
 
       tmpHash[:ensure] = "present"
-      tmpHash[:name]   = name[0]
+      tmpHash[:name]   = name[:name]
+      tmpHash[:url]    = name[:url]
       serviceInfo[0]['attrs'].each do |nameOfAttribute, valueOfAttribute|
 
         next if SETTABLEATTRIBUTES.empty?
@@ -41,7 +39,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
         if SETTABLEATTRIBUTES.include?(nameOfAttribute)
             if nameOfAttribute == "templates"
               currentTemplates = valueOfAttribute.select do |template|
-                   template != name[0].split("!")[1]
+                   template != name[:name].split("!")[1]
               end
               tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
             else
@@ -60,20 +58,20 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     return if URL.empty?
     changes.each do |name, change|
       is = if context.type.feature?('simple_get_filter')
-        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name }
+        change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name[:name] }
       else
-        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name }
+        change.key?(:is) ? change[:is] : (get(context) || []).find { |r| r[:name] == name[:name] }
       end
       context.type.check_schema(is) unless change.key?(:is)
 
       should = change[:should]
       raise 'SimpleProvider cannot be used with a Type that is not ensurable' unless context.type.ensurable?
 
-      is = { name: name, ensure: 'absent' } if is.nil?
-      should = { name: name, ensure: 'absent' } if should.nil?
+      is = { name: name[:name], url: name[:url], ensure: 'absent' } if is.nil?
+      should = { name: name[:name], url: name[:url], ensure: 'absent' } if should.nil?
       name_hash = if context.type.namevars.length > 1
                     # pass a name_hash containing the values of all namevars
-                    name_hash = { title: name }
+                    name_hash = {}
                     context.type.namevars.each do |namevar|
                         name_hash[namevar] = change[:should][namevar]
                     end
@@ -83,16 +81,16 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
                   end
 
       if is[:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
-        context.creating(name) do
-          create(context, name_hash, should.clone, URL)
+        context.creating(name[:name]) do
+          create(context, name_hash, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
-        context.updating(name) do
-          update(context, name_hash, is, should.clone, URL)
+        context.updating(name[:name]) do
+          update(context, name_hash, is, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
-        context.deleting(name) do
-          delete(context, name_hash, "services", URL)
+        context.deleting(name[:name]) do
+          delete(context, name_hash, "services")
         end
       end
     end
@@ -131,10 +129,10 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   end               
 
   
-  def create(context, name, should, url)
+  def create(context, name, should)
     notificationData = {"attrs" => {"user_groups" => should[:notification_user_groups], "users" => should[:notification_users]}, "templates" => should[:notification_templates]}
     begin                                                                                                                              
-       serviceUrl = url + "services/#{name}"
+       serviceUrl = name[:url] + "services/#{name[:name]}"
        templates = should[:templates]
        deleteUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
@@ -144,28 +142,28 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     end
 
     if should[:enable_notifications] == true
-       createNotification(name, notificationData, url)
+       createNotification(name[:name], notificationData, name[:url])
     end
   end
   
   
-  def update(context, name, is, should, url)
+  def update(context, name, is, should)
     if (is[:notification_users] != should[:notification_users]) || (is[:notification_user_groups] != should[:notification_user_groups]) || (is[:notification_templates] != should[:notification_templates])
 
-       notificationName = name + "!" + name.split("!")[1] + "-notification"
+       notificationName = name[:name] + "!" + name[:name].split("!")[1] + "-notification"
        notificationData = {"attrs" => {"user_groups" => should[:notification_user_groups], "users" => should[:notification_users]}, "templates" => should[:notification_templates]}
 
        if is[:notification_users] != [] || is[:notification_user_groups] != [] || is[:notification_templates] != []
-          delete(context, notificationName, "notifications", url)  # DELETE NOTIFICATION ONLY IF EXISTS
+          delete(context, notificationName, "notifications")  # DELETE NOTIFICATION ONLY IF EXISTS
        end
 
        if should[:enable_notifications] == true
-          createNotification(notificationName, notificationData, url) # CREATE NOTIFICATION ONLY IF IS ENABLED
+          createNotification(notificationName, notificationData, name[:url]) # CREATE NOTIFICATION ONLY IF IS ENABLED
        end
     end
 
     begin
-       url = url + "services/#{name}"
+       url = name[:url] + "services/#{name[:name]}"
        templates = should[:templates]
        deleteUselessAttributes(should)
        attributes = {"attrs" => should, "templates" => templates}
@@ -176,8 +174,8 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   end
   
 
-  def delete(context, name, object, url)
-    url = url + "#{object}/#{name}?cascade=1"
+  def delete(context, name, object)
+    url = name[:url] + "#{object}/#{name[:name]}?cascade=1"
     begin
        RestClient::Request.execute(:url => url, :method => "delete", :verify_ssl => false, :timeout => 10, :headers => {"Accept" => "application/json"})
     rescue Errno::ECONNREFUSED, Errno::ENETUNREACH, RestClient::RequestTimeout => error
