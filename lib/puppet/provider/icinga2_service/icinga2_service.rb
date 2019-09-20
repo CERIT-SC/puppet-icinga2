@@ -81,15 +81,15 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
                   end
 
       if is[:ensure].to_s == 'absent' && should[:ensure].to_s == 'present'
-        context.creating(name[0][:name]) do
+        context.creating(name[:name]) do
           create(context, name_hash, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
-        context.updating(name[0][:name]) do
+        context.updating(name[:name]) do
           update(context, name_hash, is, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
-        context.deleting(name[0][:name]) do
+        context.deleting(name[:name]) do
           delete(context, name_hash, "services")
         end
       end
