@@ -126,6 +126,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
      attributes.delete(:name)                                                                                                                                                                       
      attributes.delete(:ensure)                                                                                                                                                                     
      attributes.delete(:templates)                                                                                                                                                                  
+     attributes.delete(:url)
   end               
 
   

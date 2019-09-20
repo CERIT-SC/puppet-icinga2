@@ -131,6 +131,7 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
       attributes.delete(:templates)
       attributes.delete(:name)
       attributes.delete(:ensure)
+      attributes.delete(:url)
       if removeGroups
         attributes.delete(:groups)
       end
