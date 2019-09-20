@@ -11,7 +11,7 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
     result   = []
     tmpHash  = {}
     serviceInfo      = getInformation(name[0][:name], name[0][:url] + "services")
-    notificationName = name[:name] + "!" + name[:name].split("!")[1] + "-notification"
+    notificationName = name[0][:name] + "!" + name[0][:name].split("!")[1] + "-notification"
     notificationInfo = getInformation(notificationName, name[0][:url] + "notifications")
 
     if serviceInfo.empty?
