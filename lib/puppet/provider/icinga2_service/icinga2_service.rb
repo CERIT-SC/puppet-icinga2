@@ -55,7 +55,6 @@ class Puppet::Provider::Icinga2Service::Icinga2Service
   
   
   def set(context, changes)
-    return if URL.empty?
     changes.each do |name, change|
       is = if context.type.feature?('simple_get_filter')
         change.key?(:is) ? change[:is] : (get(context, name) || []).find { |r| r[:name] == name[0][:name] }
