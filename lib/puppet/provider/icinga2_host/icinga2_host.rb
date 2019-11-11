@@ -73,13 +73,15 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
           create(context, name_hash, should.clone)
         end
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'present'
-        context.updating(name[:name]) do
-          update(context, name_hash, is, should.clone)
-        end
+        #context.updating(name[:name]) do
+          #update(context, name_hash, is, should.clone)
+        #end
+        puts "I would update this node. But I wont."
       elsif is[:ensure].to_s == 'present' && should[:ensure].to_s == 'absent'
-        context.deleting(name[:name]) do
-          delete(context, name_hash)
-        end
+        #context.deleting(name[:name]) do
+          #delete(context, name_hash)
+        #end
+        puts "I would delete this node. But I wont."
       end
     end
   end
