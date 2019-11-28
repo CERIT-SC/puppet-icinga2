@@ -15,7 +15,7 @@ define icinga2::icinga2_host (
 ) {
     $_attributes_to_set = [
                             "address", "display_name", "groups",
-                            "templates", "vars", "check_command",
+                            "templates", "original_attributes", "check_command",
                             "check_interval", "retry_interval",
                             "check_timeout", "enable_active_checks",
                             "enable_event_handler", "enable_notifications"
