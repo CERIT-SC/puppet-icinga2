@@ -29,7 +29,9 @@ class Puppet::Provider::Icinga2Host::Icinga2Host
             currentTemplates = valueOfAttribute.select do |template|
                template != name[0][:name]
             end
-            tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort
+            tmpHash[nameOfAttribute.to_sym] = currentTemplates.sort            
+          elsif nameOfAttribute == "original_attributes"
+            tmpHash[:vars] = valueOfAttribute["vars"]
           else
             tmpHash[nameOfAttribute.to_sym] = valueOfAttribute
           end
